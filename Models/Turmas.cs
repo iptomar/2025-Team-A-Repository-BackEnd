@@ -1,13 +1,22 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace _2025_Team_A_Repository_BackEnd.Models
+namespace GP_Backend.Models
 {
     /// <summary>
     /// Tabela de Turmas
     /// </summary>
     public class Turmas
     {
+        /// <summary>
+        /// Construtor da classe Turmas
+        /// </summary>
+        public Turmas()
+        {
+            Horarios = new HashSet<Horarios>();
+        }
+
+
         [Key]
         public int Id { get; set; }
 
@@ -19,11 +28,11 @@ namespace _2025_Team_A_Repository_BackEnd.Models
          * Vamos criar as Relações (FKs) com outras tabelas
          * *********************************************** */
 
-        // Relacionamento do tipo N-1
-        [ForeignKey(nameof(Horario))]
-        public int HorarioFK { get; set; }
-
-        public Horarios Horario { get; set; }
+        /* ************************************************
+         * Relacionamento 1-N com Horarios
+         * Uma turma pode ter vários horários
+         * *********************************************** */
+        public ICollection<Horarios> Horarios { get; set; }
 
         // Relacionamento do tipo N-1
         [ForeignKey(nameof(Curso))]

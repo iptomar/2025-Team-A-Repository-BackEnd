@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
 
-namespace _2025_Team_A_Repository_BackEnd.Models
+namespace GP_Backend.Models
 {
     /// <summary>
     /// Tabela de Cursos

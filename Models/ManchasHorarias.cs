@@ -1,4 +1,7 @@
-namespace _2025-Team-A-Repository-BackEnd.Models
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace GP_Backend.Models
 {
     /// <summary>
     /// Tabela de Manchas Horárias (Aulas)

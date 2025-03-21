@@ -5,7 +5,12 @@ using GP_Backend.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+// ************************************
+
+//localização da Base de Dados
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+//referência ao sistema de Gestão de Bases de Dados (SGBD)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
