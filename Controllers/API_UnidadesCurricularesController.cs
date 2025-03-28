@@ -23,23 +23,46 @@ namespace GP_Backend.Controllers
 
         // GET: api/API_UnidadesCurriculares
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UnidadesCurriculares>>> GetUCs()
+        public async Task<ActionResult<IEnumerable<object>>> GetUCs()
         {
-            return await _context.UCs.ToListAsync();
+            var ucs = await _context.UCs
+                .Select(uc => new
+                {
+                    uc.Id,
+                    uc.Nome,
+                    uc.Plano,
+                    uc.Semestre,
+                    uc.Ano,
+                    Cursos = uc.ListaCursos.Select(c => c.Nome).ToList() // Apenas os nomes dos cursos
+                })
+                .ToListAsync();
+
+            return Ok(ucs);
         }
 
         // GET: api/API_UnidadesCurriculares/5
         [HttpGet("{id}")]
         public async Task<ActionResult<UnidadesCurriculares>> GetUnidadesCurriculares(int id)
         {
-            var unidadesCurriculares = await _context.UCs.FindAsync(id);
+            var unidadesCurriculares = await _context.UCs
+                .Where(uc => uc.Id == id)
+                .Select(uc => new
+                {
+                    uc.Id,
+                    uc.Nome,
+                    uc.Plano,
+                    uc.Semestre,
+                    uc.Ano,
+                    Cursos = uc.ListaCursos.Select(c => c.Nome).ToList() // Apenas os nomes dos cursos
+                })
+                .FirstOrDefaultAsync();
 
             if (unidadesCurriculares == null)
             {
                 return NotFound();
             }
 
-            return unidadesCurriculares;
+            return Ok(unidadesCurriculares);
         }
 
         // PUT: api/API_UnidadesCurriculares/5
