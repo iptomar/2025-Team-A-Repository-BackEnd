@@ -4,6 +4,7 @@ using GP_Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GP_Backend.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250321205953_MigracaoInicial")]
+    partial class MigracaoInicial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -195,6 +198,9 @@ namespace GP_Backend.Data.Migrations
                     b.Property<int>("CursoFK")
                         .HasColumnType("int");
 
+                    b.Property<int>("HorarioFK")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -202,6 +208,8 @@ namespace GP_Backend.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CursoFK");
+
+                    b.HasIndex("HorarioFK");
 
                     b.ToTable("Turmas");
                 });
@@ -518,7 +526,7 @@ namespace GP_Backend.Data.Migrations
             modelBuilder.Entity("GP_Backend.Models.Horarios", b =>
                 {
                     b.HasOne("GP_Backend.Models.Turmas", "Turma")
-                        .WithMany("Horarios")
+                        .WithMany()
                         .HasForeignKey("TurmaFK")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -572,7 +580,15 @@ namespace GP_Backend.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("GP_Backend.Models.Horarios", "Horario")
+                        .WithMany()
+                        .HasForeignKey("HorarioFK")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Curso");
+
+                    b.Navigation("Horario");
                 });
 
             modelBuilder.Entity("GP_Backend.Models.Utilizadores", b =>
@@ -665,11 +681,6 @@ namespace GP_Backend.Data.Migrations
                     b.Navigation("ListaCursos");
 
                     b.Navigation("ListaSalas");
-                });
-
-            modelBuilder.Entity("GP_Backend.Models.Turmas", b =>
-                {
-                    b.Navigation("Horarios");
                 });
 #pragma warning restore 612, 618
         }
