@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GP_Backend.Data;
 using GP_Backend.Models;
+using GP_Backend.DTOs;
 
 namespace GP_Backend.Controllers
 {
@@ -65,49 +66,51 @@ namespace GP_Backend.Controllers
 
 
 		// PUT: api/API_Salas/5
-		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
-        public async Task<IActionResult> PutSalas(int id, Salas salas)
+        public async Task<IActionResult> PutSalas(int id, SalaDTO dto)
         {
-            if (id != salas.Id)
-            {
-                return BadRequest();
-            }
+			var sala = await _context.Salas.FindAsync(id);
 
-            _context.Entry(salas).State = EntityState.Modified;
+			if (sala == null)
+				return NotFound();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!SalasExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+			sala.Nome = dto.Nome;
+			sala.EscolaFK = dto.EscolaFK;
 
-            return NoContent();
-        }
+			try
+			{
+				await _context.SaveChangesAsync();
+			}
+			catch (DbUpdateConcurrencyException)
+			{
+				if (!SalasExists(id))
+					return NotFound();
+				else
+					throw;
+			}
+
+			return NoContent();
+		}
 
         // POST: api/API_Salas
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Salas>> PostSalas(Salas salas)
-        {
-            _context.Salas.Add(salas);
-            await _context.SaveChangesAsync();
+		public async Task<ActionResult<Salas>> PostSalas(SalaDTO dto)
+		{
+			var sala = new Salas
+			{
+				Nome = dto.Nome,
+				EscolaFK = dto.EscolaFK
+			};
 
-            return CreatedAtAction("GetSalas", new { id = salas.Id }, salas);
-        }
+			_context.Salas.Add(sala);
+			await _context.SaveChangesAsync();
 
-        // DELETE: api/API_Salas/5
-        [HttpDelete("{id}")]
+			return CreatedAtAction(nameof(GetSala), new { id = sala.Id }, sala);
+		}
+
+
+		// DELETE: api/API_Salas/5
+		[HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSalas(int id)
         {
             var salas = await _context.Salas.FindAsync(id);
