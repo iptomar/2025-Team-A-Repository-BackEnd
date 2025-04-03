@@ -15,6 +15,7 @@ namespace GP_Backend.Models
         public Cursos()
         {
             ListaUCs = new HashSet<UnidadesCurriculares>();
+            ListaTurmas = new HashSet<Turmas>();
         }
 
         [Key]
@@ -31,6 +32,12 @@ namespace GP_Backend.Models
         public int EscolaFK { get; set; }
 
         public Escolas Escola { get; set; }
+
+        // Relacionament do tipo 1-N
+        /// <summary>
+        /// Lista de Turmas
+        /// </summary>
+        public ICollection<Turmas> ListaTurmas { get; set; }
 
         // Relacionamento do tipo N-M, SEM atributos do relacionamento        
         /// <summary>
