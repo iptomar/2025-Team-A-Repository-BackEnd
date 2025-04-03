@@ -105,8 +105,13 @@ namespace GP_Backend.Controllers
             return _context.ManchasHorarias.Any(e => e.Id == id);
         }
 
+        /// <summary>
+        /// Endpoint para efetuar um GET passando o id da Sala como parametro
+        /// </summary>
+        /// <param name="idSala"></param>
+        /// <returns></returns>
         // GET: api/API_ManchasHorarias/5
-        [HttpGet("{id}")]
+        [HttpGet("{idSala}")]
         public async Task<IActionResult> GetManchasHorariasPorSala(int idSala)
         {
             var manchasHorarias = await _context.ManchasHorarias
@@ -118,7 +123,49 @@ namespace GP_Backend.Controllers
                 return NotFound();
             }
 
-            return manchasHorarias;
+            return Ok(manchasHorarias);
+        }
+
+        /// <summary>
+        /// Endpoint para efetuar um GET passando o id do Docente como parametro
+        /// </summary>
+        /// <param name="idDocente"></param>
+        /// <returns></returns>
+        // GET: api/API_ManchasHorarias/5
+        [HttpGet("{idDocente}")]
+        public async Task<IActionResult> GetManchasHorariasPorDocente(int idDocente)
+        {
+            var manchasHorarias = await _context.ManchasHorarias
+                .Where(m => m.DocenteFK == idDocente)
+                .ToListAsync();
+
+            if (manchasHorarias == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(manchasHorarias);
+        }
+
+        /// <summary>
+        /// Endpoint para efetuar um GET passando o id da Unidade Curricular como parametro
+        /// </summary>
+        /// <param name="idDocente"></param>
+        /// <returns></returns>
+        // GET: api/API_ManchasHorarias/5
+        [HttpGet("{idDocente}")]
+        public async Task<IActionResult> GetManchasHorariasPorUC(int idUC)
+        {
+            var manchasHorarias = await _context.ManchasHorarias
+                .Where(m => m.UCFK == idUC)
+                .ToListAsync();
+
+            if (manchasHorarias == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(manchasHorarias);
         }
     }
 }
