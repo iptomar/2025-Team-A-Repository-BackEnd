@@ -105,6 +105,20 @@ namespace GP_Backend.Controllers
             return _context.ManchasHorarias.Any(e => e.Id == id);
         }
 
+        // GET: api/API_ManchasHorarias/5
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetManchasHorariasPorSala(int idSala)
+        {
+            var manchasHorarias = await _context.ManchasHorarias
+                .Where(m => m.SalaFK == idSala)
+                .ToListAsync();
 
+            if (manchasHorarias == null)
+            {
+                return NotFound();
+            }
+
+            return manchasHorarias;
+        }
     }
 }
