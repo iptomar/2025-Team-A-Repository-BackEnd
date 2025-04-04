@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GP_Backend.Data;
 using GP_Backend.Models;
+using Microsoft.AspNetCore.Hosting;
 
 namespace GP_Backend.Controllers
 {
@@ -65,59 +66,105 @@ namespace GP_Backend.Controllers
             return Ok(unidadesCurriculares);
         }
 
-        // PUT: api/API_UnidadesCurriculares/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUnidadesCurriculares(int id, UnidadesCurriculares unidadesCurriculares)
-        {
-            if (id != unidadesCurriculares.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(unidadesCurriculares).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UnidadesCurricularesExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
+        // Criar uma Unidade Curricular
         // POST: api/API_UnidadesCurriculares
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<UnidadesCurriculares>> PostUnidadesCurriculares(UnidadesCurriculares unidadesCurriculares)
+        public async Task<IActionResult> Create([FromForm] UnidadesCurriculares unidadeCurricular)
         {
-            _context.UCs.Add(unidadesCurriculares);
-            await _context.SaveChangesAsync();
+            bool haErros = false;
 
-            return CreatedAtAction("GetUnidadesCurriculares", new { id = unidadesCurriculares.Id }, unidadesCurriculares);
+            if (unidadeCurricular.ListaCursos.Count() == 0)
+            {
+                // Verifica se nenhum curso foi selecionado
+                haErros = true;
+                return BadRequest(new { erro = "Escolha pelo menos um curso, por favor." });
+            }
+
+            if (ModelState.IsValid && !haErros)
+            {
+                try
+                {
+                    // Lista de cursos válidos associados à UC
+                    var listaCursosNaUC = new List<Cursos>();
+                    foreach (var curso in unidadeCurricular.ListaCursos)
+                    {
+                        var c = await _context.Cursos.FirstOrDefaultAsync(m => m.CodCurso == curso.CodCurso);
+                        if (c != null)
+                        {
+                            listaCursosNaUC.Add(c);
+                        }
+                    }
+                    unidadeCurricular.ListaCursos = listaCursosNaUC;
+
+                    // Adiciona a UC ao banco de dados
+                    _context.Add(unidadeCurricular);
+                    await _context.SaveChangesAsync();  // Salva a UC
+
+                    return Ok(unidadeCurricular);  // Retorna a UC criada com sucesso
+                }
+                catch (Exception ex)
+                {
+                    // Em caso de erro crítico, retornar erro com detalhes
+                    return BadRequest(new { erro = ex.Message });
+                }
+            }
+
+            // Se o ModelState não for válido ou houver erro
+            return BadRequest(new { erro = "Dados inválidos" });
         }
 
+
+        // Editar uma Unidade Curricular
+        // PUT: api/API_UnidadesCurriculares/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754        
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Edit(int id, [FromBody] UnidadesCurriculares body)
+        {
+
+            var unidadecurricular = await _context.UCs                  
+                    .Include(u => u.ListaCursos)
+                    .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (unidadecurricular == null)
+            {
+                return NotFound(new { erro = "Unidade Curricular não encontrada" });
+            }
+
+            //TODO verificar editar os cursos
+
+            /*unidadecurricular.ListaCursos = body.ListaCursos;*/
+           
+            unidadecurricular.Ano = body.Ano;
+            unidadecurricular.Plano = body.Plano;
+            unidadecurricular.Semestre = body.Semestre;
+            unidadecurricular.Nome = body.Nome;
+
+            _context.Update(unidadecurricular);
+            await _context.SaveChangesAsync();
+
+            return Ok(unidadecurricular);
+
+        }
+
+
+        // Apagar uma Unidade Curricular
         // DELETE: api/API_UnidadesCurriculares/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUnidadesCurriculares(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var unidadesCurriculares = await _context.UCs.FindAsync(id);
-            if (unidadesCurriculares == null)
+            // procura a unidade curricular pelo id
+            var unidadecurricular = await _context.UCs.FindAsync(id);
+            
+            // caso a unidade curricular não seja encontrada
+            if (unidadecurricular == null)
             {
                 return NotFound();
             }
 
-            _context.UCs.Remove(unidadesCurriculares);
+            // remove a unidade curricular da BD
+            _context.UCs.Remove(unidadecurricular);
+            // efetua COMMIT na BD
             await _context.SaveChangesAsync();
 
             return NoContent();
