@@ -13,11 +13,11 @@ namespace GP_Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DocentesController : ControllerBase
+    public class API_DocentesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-        public DocentesController(ApplicationDbContext context)
+        public API_DocentesController(ApplicationDbContext context)
         {
             _context = context;
         }
