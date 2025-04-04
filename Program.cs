@@ -19,6 +19,19 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddRazorPages();
 
+//CORS
+builder.Services.AddCors(options =>
+{
+options.AddPolicy("AllowSpecificOrigin",
+    builder =>
+    {
+        builder.WithOrigins("http://localhost:5173")
+                   .AllowAnyHeader()
+                   .AllowAnyMethod()
+                    .AllowCredentials();
+    });
+});
+
 //Serviços para autenticação
 builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
@@ -54,11 +67,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+//CORS
+app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthorization();
 
