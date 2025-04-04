@@ -70,7 +70,7 @@ namespace GP_Backend.Controllers
         // POST: api/API_UnidadesCurriculares
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<IActionResult> Create([FromForm] UnidadesCurriculares unidadeCurricular)
+        public async Task<IActionResult> Create([FromBody] UnidadesCurriculares unidadeCurricular)
         {
             bool haErros = false;
 
@@ -101,7 +101,8 @@ namespace GP_Backend.Controllers
                     _context.Add(unidadeCurricular);
                     await _context.SaveChangesAsync();  // Salva a UC
 
-                    return Ok(unidadeCurricular);  // Retorna a UC criada com sucesso
+                    return Ok(new { message = "Criada com sucesso", id = unidadeCurricular.Id });
+                    // Retorna a UC criada com sucesso
                 }
                 catch (Exception ex)
                 {
