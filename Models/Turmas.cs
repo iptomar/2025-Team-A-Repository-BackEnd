@@ -38,6 +38,6 @@ namespace GP_Backend.Models
         [ForeignKey(nameof(Curso))]
         public int CursoFK { get; set; }
 
-        public Cursos Curso { get; set; }
+        public Cursos? Curso { get; set; }
     }
 }
