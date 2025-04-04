@@ -25,14 +25,14 @@ namespace GP_Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Turmas>>> GetTurmas()
         {
-            return await _context.Turmas.ToListAsync();
+            return await _context.Turmas.Include(t => t.Curso).ToListAsync();
         }
 
         // GET: api/API_Turmas/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Turmas>> GetTurmas(int id)
         {
-            var turmas = await _context.Turmas.FindAsync(id);
+            var turmas = await _context.Turmas.Include(t => t.Curso).FirstOrDefaultAsync(t => t.Id == id);
 
             if (turmas == null)
             {
@@ -47,9 +47,50 @@ namespace GP_Backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTurmas(int id, Turmas turmas)
         {
-            if (id != turmas.Id)
+            if(TurmasExists(id) == false)
             {
-                return BadRequest();
+                return NotFound();
+            }
+
+            if(turmas == null) 
+            { 
+                return BadRequest("O campo turma não pode estar vazio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(turmas.Nome))
+            {
+                return BadRequest("O campo nome não pode estar vazio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(turmas.AnoLetivo))
+            {
+                return BadRequest("O campo ano letivo não pode estar vazio.");
+            }
+
+            if (turmas.CursoFK == 0)
+            {
+                return BadRequest("O campo curso não pode estar vazio.");
+            }
+
+            if(turmas.CursoFK != 0)
+            {
+                var curso = await _context.Cursos.FindAsync(turmas.CursoFK);
+                if (curso == null)
+                {
+                    return BadRequest("O curso não existe.");
+                }
+            }
+
+            if (turmas.Id != id)
+            {
+                return BadRequest("O ID da turma não corresponde ao ID fornecido na URL.");
+            }
+
+            var existingTurma = await _context.Turmas
+                .FirstOrDefaultAsync(t => t.Nome == turmas.Nome && t.AnoLetivo == turmas.AnoLetivo && t.CursoFK == turmas.CursoFK && t.Id != id);
+            if (existingTurma != null)
+            {
+                return Conflict("A turma já existe.");
             }
 
             _context.Entry(turmas).State = EntityState.Modified;
@@ -70,7 +111,7 @@ namespace GP_Backend.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(turmas);
         }
 
         // POST: api/API_Turmas
@@ -78,6 +119,43 @@ namespace GP_Backend.Controllers
         [HttpPost]
         public async Task<ActionResult<Turmas>> PostTurmas(Turmas turmas)
         {
+
+            if(turmas == null)
+            {
+                return BadRequest("O campo turma não pode estar vazio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(turmas.Nome))
+            {
+                return BadRequest("O campo nome não pode estar vazio.");
+            }
+
+            if (string.IsNullOrWhiteSpace(turmas.AnoLetivo))
+            {
+                return BadRequest("O campo ano letivo não pode estar vazio.");
+            }
+
+            if (turmas.CursoFK == 0)
+            {
+                return BadRequest("O campo curso não pode estar vazio.");
+            }
+
+            if(turmas.CursoFK != 0)
+            {
+                var curso = await _context.Cursos.FindAsync(turmas.CursoFK);
+                if (curso == null)
+                {
+                    return BadRequest("O curso não existe.");
+                }
+            }
+
+            var existingTurma = await _context.Turmas
+                .FirstOrDefaultAsync(t => t.Nome == turmas.Nome && t.AnoLetivo == turmas.AnoLetivo && t.CursoFK == turmas.CursoFK);
+            if (existingTurma != null)
+            {
+                return Conflict("A turma já existe.");
+            }
+
             _context.Turmas.Add(turmas);
             await _context.SaveChangesAsync();
 
@@ -97,7 +175,7 @@ namespace GP_Backend.Controllers
             _context.Turmas.Remove(turmas);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(turmas);
         }
 
         private bool TurmasExists(int id)
