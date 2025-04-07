@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using GP_Backend.Data;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,14 +9,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ************************************
 
-//localização da Base de Dados
+//localizaÃ§Ã£o da Base de Dados
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-//referência ao sistema de Gestão de Bases de Dados (SGBD)
+//referÃªncia ao sistema de GestÃ£o de Bases de Dados (SGBD)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddControllersWithViews();
+
 
 builder.Services.AddRazorPages();
 
@@ -32,14 +34,15 @@ options.AddPolicy("AllowSpecificOrigin",
     });
 });
 
-//Serviços para autenticação
+//ServiÃ§os para autenticaÃ§Ã£o
 builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-//Serviços para o Swagger
+//ServiÃ§os para o Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 
 var app = builder.Build();
@@ -59,8 +62,8 @@ else
     app.UseHsts();
 }
 
-//Serviços do Swagger
-//Apenas são usados em ambiente de desenvolvimento
+//ServiÃ§os do Swagger
+//Apenas sÃ£o usados em ambiente de desenvolvimento
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -72,8 +75,10 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+
 //CORS
 app.UseCors("AllowSpecificOrigin");
+
 
 app.UseAuthorization();
 
