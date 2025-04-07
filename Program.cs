@@ -9,29 +9,46 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ************************************
 
-//localiza��o da Base de Dados
+//localização da Base de Dados
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-//refer�ncia ao sistema de Gest�o de Bases de Dados (SGBD)
+//referência ao sistema de Gestão de Bases de Dados (SGBD)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
+
+builder.Services.AddRazorPages();
+
+//CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("PermitirTudo", policy =>
+options.AddPolicy("AllowSpecificOrigin",
+    builder =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        builder.WithOrigins("http://localhost:5173")
+                   .AllowAnyHeader()
+                   .AllowAnyMethod()
+                    .AllowCredentials();
     });
 });
 
+//Serviços para autenticação
+builder.Services.AddAuthorization();
+builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+
+//Serviços para o Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+
 
 var app = builder.Build();
+
+
+app.MapIdentityApi<IdentityUser>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -45,12 +62,23 @@ else
     app.UseHsts();
 }
 
+//Serviços do Swagger
+//Apenas são usados em ambiente de desenvolvimento
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseCors("PermitirTudo");
+
+//CORS
+app.UseCors("AllowSpecificOrigin");
+
 
 app.UseAuthorization();
 
