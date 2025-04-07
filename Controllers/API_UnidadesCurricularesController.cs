@@ -123,29 +123,43 @@ namespace GP_Backend.Controllers
         public async Task<IActionResult> Edit(int id, [FromBody] UnidadesCurriculares body)
         {
 
-            var unidadecurricular = await _context.UCs                  
-                    .Include(u => u.ListaCursos)
-                    .FirstOrDefaultAsync(m => m.Id == id);
+            var unidadecurricular = await _context.UCs
+                .Include(u => u.ListaCursos)
+                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (unidadecurricular == null)
             {
                 return NotFound(new { erro = "Unidade Curricular não encontrada" });
             }
 
-            //TODO verificar editar os cursos
+            try
+            {
+                unidadecurricular.Ano = body.Ano;
+                unidadecurricular.Plano = body.Plano;
+                unidadecurricular.Semestre = body.Semestre;
+                unidadecurricular.Nome = body.Nome;
 
-            /*unidadecurricular.ListaCursos = body.ListaCursos;*/
-           
-            unidadecurricular.Ano = body.Ano;
-            unidadecurricular.Plano = body.Plano;
-            unidadecurricular.Semestre = body.Semestre;
-            unidadecurricular.Nome = body.Nome;
+                // Atualizar os cursos associados
+                unidadecurricular.ListaCursos.Clear();
+                foreach (var curso in body.ListaCursos)
+                {
+                    var cursoExistente = await _context.Cursos.FindAsync(curso.CodCurso);
+                    if (cursoExistente != null)
+                    {
+                        unidadecurricular.ListaCursos.Add(cursoExistente);
+                    }
+                }
 
-            _context.Update(unidadecurricular);
-            await _context.SaveChangesAsync();
+                _context.Update(unidadecurricular);
+                await _context.SaveChangesAsync();
 
-            return Ok(unidadecurricular);
-
+                return Ok(new { message = "Editada com sucesso", id });
+            }
+            catch (Exception ex)
+            {
+                // Em caso de erro crítico, retornar erro com detalhes
+                return BadRequest(new { erro = ex.Message });
+            }
         }
 
 
