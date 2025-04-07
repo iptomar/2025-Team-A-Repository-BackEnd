@@ -23,6 +23,9 @@ namespace GP_Backend.Models
 
         public int NumSlots { get; set; }
 
+        public TimeOnly HoraInicio { get; set; }
+
+        public DateOnly Dia { get; set; }
         /* ************************************************
          * Vamos criar as Relações (FKs) com outras tabelas
          * *********************************************** */

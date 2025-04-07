@@ -76,12 +76,34 @@ namespace GP_Backend.Controllers
         // POST: api/API_ManchasHorarias
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<ManchasHorarias>> PostManchasHorarias(ManchasHorarias manchasHorarias)
+        public async Task<ActionResult> PostManchasHorarias([FromForm] string tipoAula, [FromForm] int numSlots, [FromForm] int docenteFK, [FromForm] int salaFK, [FromForm] int ucFK)
         {
-            _context.ManchasHorarias.Add(manchasHorarias);
-            await _context.SaveChangesAsync();
+            // Verifificar se os campos obrigatórios estão preenchidos
+            if (tipoAula == null || numSlots == 0 || docenteFK <= 0 || salaFK <= 0 || ucFK <= 0)
+            {
+                return BadRequest("Preencha os campos corretamente!");
+            }
 
-            return CreatedAtAction("GetManchasHorarias", new { id = manchasHorarias.Id }, manchasHorarias);
+            var manchaHoraria = new ManchasHorarias
+            {
+                TipoDeAula = tipoAula,
+                NumSlots = numSlots,
+                DocenteFK = docenteFK,
+                SalaFK = salaFK,
+                UCFK = ucFK
+            };
+
+            if (ModelState.IsValid)
+            {
+
+                _context.Add(manchaHoraria);
+                await _context.SaveChangesAsync();
+                return Ok(manchaHoraria);
+            }
+
+            return BadRequest("Não deu!");
+
+
         }
 
         // DELETE: api/API_ManchasHorarias/5
