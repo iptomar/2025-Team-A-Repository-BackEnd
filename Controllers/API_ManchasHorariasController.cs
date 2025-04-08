@@ -12,10 +12,15 @@ namespace GP_Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+
     public class API_ManchasHorariasController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-
+        public class ManchaHorariaUpdateHoraDTO
+        {
+            public TimeOnly HoraInicio { get; set; }
+            public DateOnly Dia { get; set; }
+        }
         public API_ManchasHorariasController(ApplicationDbContext context)
         {
             _context = context;
@@ -25,7 +30,14 @@ namespace GP_Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ManchasHorarias>>> GetManchasHorarias()
         {
-            return await _context.ManchasHorarias.ToListAsync();
+            var manchasComRelacionamentos = await _context.ManchasHorarias
+                .Include(m => m.Docente)
+                .Include(m => m.Sala)
+                .Include(m => m.UC)
+                .ToListAsync();
+
+            return Ok(manchasComRelacionamentos);
+            // return await _context.ManchasHorarias.ToListAsync();
         }
 
         // GET: api/API_ManchasHorarias/5
@@ -73,10 +85,29 @@ namespace GP_Backend.Controllers
             return NoContent();
         }
 
+
+        [HttpPut]
+        [Route("drag-bloco/{id}")]
+        public async Task<IActionResult> PutHoursManchasHorarias(int id, [FromBody] ManchaHorariaUpdateHoraDTO update)
+        {
+            var mancha = await _context.ManchasHorarias.FindAsync(id);
+
+            if (mancha == null)
+            {
+                return NotFound("A mancha horária não foi encontrada.");
+            }
+
+            mancha.HoraInicio = update.HoraInicio;
+            mancha.Dia = update.Dia;
+
+            await _context.SaveChangesAsync();
+            return Ok(mancha);
+        }
+
         // POST: api/API_ManchasHorarias
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult> PostManchasHorarias([FromForm] string tipoAula, [FromForm] int numSlots, [FromForm] int docenteFK, [FromForm] int salaFK, [FromForm] int ucFK)
+        public async Task<ActionResult> PostManchasHorarias([FromForm] string tipoAula, [FromForm] int numSlots, [FromForm] TimeOnly horaInicio, [FromForm] DateOnly diaSemana, [FromForm] int docenteFK, [FromForm] int salaFK, [FromForm] int ucFK)
         {
             // Verifificar se os campos obrigatórios estão preenchidos
             if (tipoAula == null || numSlots == 0 || docenteFK <= 0 || salaFK <= 0 || ucFK <= 0)
@@ -87,10 +118,12 @@ namespace GP_Backend.Controllers
             var manchaHoraria = new ManchasHorarias
             {
                 TipoDeAula = tipoAula,
+                HoraInicio = horaInicio,
+                Dia = diaSemana,
                 NumSlots = numSlots,
                 DocenteFK = docenteFK,
                 SalaFK = salaFK,
-                UCFK = ucFK
+                UCFK = ucFK,
             };
 
             if (ModelState.IsValid)
@@ -98,6 +131,7 @@ namespace GP_Backend.Controllers
 
                 _context.Add(manchaHoraria);
                 await _context.SaveChangesAsync();
+
                 return Ok(manchaHoraria);
             }
 
