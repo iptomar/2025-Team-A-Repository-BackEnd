@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GP_Backend.Data;
 using GP_Backend.Models;
+using GP_Backend.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace GP_Backend.Controllers
 {
@@ -16,18 +18,21 @@ namespace GP_Backend.Controllers
     public class API_ManchasHorariasController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHubContext<HorarioHub> _hubContext;
         public class ManchaHorariaUpdateHoraDTO
         {
             public TimeOnly HoraInicio { get; set; }
             public DateOnly Dia { get; set; }
         }
-        public API_ManchasHorariasController(ApplicationDbContext context)
+        public API_ManchasHorariasController(ApplicationDbContext context,
+            IHubContext<HorarioHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
-        // GET: api/API_ManchasHorarias
-        [HttpGet]
+            // GET: api/API_ManchasHorarias
+            [HttpGet]
         public async Task<ActionResult<IEnumerable<ManchasHorarias>>> GetManchasHorarias()
         {
             var manchasComRelacionamentos = await _context.ManchasHorarias
@@ -101,6 +106,14 @@ namespace GP_Backend.Controllers
             mancha.Dia = update.Dia;
 
             await _context.SaveChangesAsync();
+
+            await _hubContext.Clients.All.SendAsync("AulaAtualizada", new
+            {
+                id = mancha.Id,
+                horaInicio = update.HoraInicio.ToString(),
+                dia = update.Dia.ToString()
+            });
+
             return Ok(mancha);
         }
 

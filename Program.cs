@@ -20,6 +20,11 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddRazorPages();
 
+//Web Sockets
+builder.Services.AddSignalR();
+
+
+
 
 //CORS
 builder.Services.AddCors(options =>
@@ -73,6 +78,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+//web sockets
+app.MapHub<HorarioHub>("/horarioHub");
 
 //CORS
 app.UseCors("AllowSpecificOrigin");
