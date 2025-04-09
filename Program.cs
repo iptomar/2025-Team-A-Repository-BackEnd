@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using GP_Backend.Data;
+using GP_Backend.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,12 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddRazorPages();
+
+//Web Sockets
+builder.Services.AddSignalR();
+
+
+
 
 //CORS
 builder.Services.AddCors(options =>
@@ -71,6 +78,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+//web sockets
+app.MapHub<HorarioHub>("/horarioHub");
 
 //CORS
 app.UseCors("AllowSpecificOrigin");

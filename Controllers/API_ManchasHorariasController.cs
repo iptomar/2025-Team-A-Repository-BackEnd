@@ -7,25 +7,42 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GP_Backend.Data;
 using GP_Backend.Models;
+using GP_Backend.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace GP_Backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+
     public class API_ManchasHorariasController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-
-        public API_ManchasHorariasController(ApplicationDbContext context)
+        private readonly IHubContext<HorarioHub> _hubContext;
+        public class ManchaHorariaUpdateHoraDTO
+        {
+            public TimeOnly HoraInicio { get; set; }
+            public DateOnly Dia { get; set; }
+        }
+        public API_ManchasHorariasController(ApplicationDbContext context,
+            IHubContext<HorarioHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
-        // GET: api/API_ManchasHorarias
-        [HttpGet]
+            // GET: api/API_ManchasHorarias
+            [HttpGet]
         public async Task<ActionResult<IEnumerable<ManchasHorarias>>> GetManchasHorarias()
         {
-            return await _context.ManchasHorarias.ToListAsync();
+            var manchasComRelacionamentos = await _context.ManchasHorarias
+                .Include(m => m.Docente)
+                .Include(m => m.Sala)
+                .Include(m => m.UC)
+                .ToListAsync();
+
+            return Ok(manchasComRelacionamentos);
+            // return await _context.ManchasHorarias.ToListAsync();
         }
 
         // GET: api/API_ManchasHorarias/5
@@ -73,15 +90,67 @@ namespace GP_Backend.Controllers
             return NoContent();
         }
 
+
+        [HttpPut]
+        [Route("drag-bloco/{id}")]
+        public async Task<IActionResult> PutHoursManchasHorarias(int id, [FromBody] ManchaHorariaUpdateHoraDTO update)
+        {
+            var mancha = await _context.ManchasHorarias.FindAsync(id);
+
+            if (mancha == null)
+            {
+                return NotFound("A mancha horária não foi encontrada.");
+            }
+
+            mancha.HoraInicio = update.HoraInicio;
+            mancha.Dia = update.Dia;
+
+            await _context.SaveChangesAsync();
+
+            await _hubContext.Clients.All.SendAsync("AulaAtualizada", new
+            {
+                id = mancha.Id,
+                horaInicio = update.HoraInicio.ToString(),
+                dia = update.Dia.ToString()
+            });
+
+            return Ok(mancha);
+        }
+
         // POST: api/API_ManchasHorarias
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<ManchasHorarias>> PostManchasHorarias(ManchasHorarias manchasHorarias)
+        public async Task<ActionResult> PostManchasHorarias([FromForm] string tipoAula, [FromForm] int numSlots, [FromForm] TimeOnly horaInicio, [FromForm] DateOnly diaSemana, [FromForm] int docenteFK, [FromForm] int salaFK, [FromForm] int ucFK)
         {
-            _context.ManchasHorarias.Add(manchasHorarias);
-            await _context.SaveChangesAsync();
+            // Verifificar se os campos obrigatórios estão preenchidos
+            if (tipoAula == null || numSlots == 0 || docenteFK <= 0 || salaFK <= 0 || ucFK <= 0)
+            {
+                return BadRequest("Preencha os campos corretamente!");
+            }
 
-            return CreatedAtAction("GetManchasHorarias", new { id = manchasHorarias.Id }, manchasHorarias);
+            var manchaHoraria = new ManchasHorarias
+            {
+                TipoDeAula = tipoAula,
+                HoraInicio = horaInicio,
+                Dia = diaSemana,
+                NumSlots = numSlots,
+                DocenteFK = docenteFK,
+                SalaFK = salaFK,
+                UCFK = ucFK,
+            };
+
+            if (ModelState.IsValid)
+            {
+
+                _context.Add(manchaHoraria);
+                await _context.SaveChangesAsync();
+
+                return Ok(manchaHoraria);
+            }
+
+            return BadRequest("Não deu!");
+
+
         }
 
         // DELETE: api/API_ManchasHorarias/5
