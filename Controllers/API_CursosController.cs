@@ -98,17 +98,23 @@ namespace GP_Backend.Controllers
             return CreatedAtAction("GetCursos", new { id = cursos.CodCurso }, cursos);
         }
 
+        // Apagar um curso
         // DELETE: api/API_Cursos/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCursos(int id)
         {
+            // procura o curso pelo id
             var cursos = await _context.Cursos.FindAsync(id);
+            
+            // caso o curso não seja encontrado
             if (cursos == null)
             {
                 return NotFound();
             }
 
+            // remove o curso da BD
             _context.Cursos.Remove(cursos);
+            // efetua COMMIT na BD
             await _context.SaveChangesAsync();
 
             return NoContent();
