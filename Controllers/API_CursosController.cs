@@ -46,14 +46,26 @@ namespace GP_Backend.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Cursos>> GetCursos(int id)
         {
-            var cursos = await _context.Cursos.FindAsync(id);
+            var curso = await _context.Cursos
+                .Include(c => c.Escola)  // Carregar a entidade Escola associada ao curso
+                .Include(c => c.ListaUCs) // Carregar a lista de Unidades Curriculares associadas ao curso
+                .FirstOrDefaultAsync(c => c.CodCurso == id); // Buscar pelo id do curso
 
-            if (cursos == null)
+            if (curso == null)
             {
                 return NotFound();
             }
 
-            return cursos;
+            // Retornar todos os detalhes do curso
+            var cursoComDetalhes = new
+            {
+                curso.CodCurso,
+                curso.Nome,
+                Escola = new { curso.Escola.Nome, curso.Escola.Id },  // Nome da Escola
+                ListaUcs = curso.ListaUCs.Select(uc => new { uc.Nome, uc.Id }).ToList() // Detalhes das Unidades Curriculares (Nome e id)
+            };
+
+            return Ok(cursoComDetalhes);
         }
 
         // PUT: api/API_Cursos/5
