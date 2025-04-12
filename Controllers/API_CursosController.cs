@@ -71,17 +71,19 @@ namespace GP_Backend.Controllers
         // PUT: api/API_Cursos/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCursos(int id, Cursos cursos)
+        public async Task<IActionResult> PutCursos(int id, Cursos curso)
         {
-            if (id != cursos.CodCurso)
+            if (id != curso.CodCurso)
             {
                 return BadRequest();
             }
 
-            _context.Entry(cursos).State = EntityState.Modified;
+            _context.Entry(curso).State = EntityState.Modified;
 
             try
             {
+                curso.Escola = await _context.Escolas.FindAsync(curso.Escola.Id); // Carrega a Escola associada ao curso
+
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
