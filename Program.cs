@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using GP_Backend.Data;
 using GP_Backend.Hubs;
 using System.Text.Json.Serialization;
+using GP_Backend.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
