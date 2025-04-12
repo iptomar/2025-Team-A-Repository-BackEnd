@@ -87,15 +87,32 @@ namespace GP_Backend.Controllers
             return NoContent();
         }
 
+        // Criar um Curso
         // POST: api/API_Cursos
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Cursos>> PostCursos(Cursos cursos)
+        public async Task<IActionResult> Create([FromBody] Cursos curso)
         {
-            _context.Cursos.Add(cursos);
-            await _context.SaveChangesAsync();
+            // Não é necessário atribuir um valor ao Id ou CodCurso
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    curso.Escola = await _context.Escolas.FindAsync(curso.Escola.Id); // Carrega a Escola associada ao curso                    
 
-            return CreatedAtAction("GetCursos", new { id = cursos.CodCurso }, cursos);
+                    // Adiciona o curso ao banco de dados sem incluir o campo de identidade
+                    _context.Add(curso);
+                    await _context.SaveChangesAsync();  // Salva o curso
+
+                    return Ok(new { message = "Curso criado com sucesso", id = curso.CodCurso });
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new { erro = ex.Message });
+                }
+            }
+
+            return BadRequest(new { erro = "Dados inválidos" });
         }
 
         // Apagar um curso
