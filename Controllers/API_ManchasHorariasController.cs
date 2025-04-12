@@ -180,7 +180,7 @@ namespace GP_Backend.Controllers
         /// <param name="idSala"></param>
         /// <returns></returns>
         // GET: api/API_ManchasHorarias/5
-        [HttpGet("{idSala}")]
+        [HttpGet("/Sala/{idSala}")]
         public async Task<IActionResult> GetManchasHorariasPorSala(int idSala)
         {
             var manchasHorarias = await _context.ManchasHorarias
@@ -201,7 +201,7 @@ namespace GP_Backend.Controllers
         /// <param name="idDocente"></param>
         /// <returns></returns>
         // GET: api/API_ManchasHorarias/5
-        [HttpGet("{idDocente}")]
+        [HttpGet("/Docente/{idDocente}")]
         public async Task<IActionResult> GetManchasHorariasPorDocente(int idDocente)
         {
             var manchasHorarias = await _context.ManchasHorarias
@@ -222,7 +222,7 @@ namespace GP_Backend.Controllers
         /// <param name="idDocente"></param>
         /// <returns></returns>
         // GET: api/API_ManchasHorarias/5
-        [HttpGet("{idDocente}")]
+        [HttpGet("/UC/{idUC}")]
         public async Task<IActionResult> GetManchasHorariasPorUC(int idUC)
         {
             var manchasHorarias = await _context.ManchasHorarias
