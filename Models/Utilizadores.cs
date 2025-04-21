@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -6,7 +7,7 @@ namespace GP_Backend.Models
     /// <summary>
     /// Tabela de Utilizadores
     /// </summary>
-    public class Utilizadores{
+    public class Utilizadores : IdentityUser{
 
         [Key]
         public int Id { get; set; }

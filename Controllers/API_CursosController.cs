@@ -46,30 +46,44 @@ namespace GP_Backend.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Cursos>> GetCursos(int id)
         {
-            var cursos = await _context.Cursos.FindAsync(id);
+            var curso = await _context.Cursos
+                .Include(c => c.Escola)  // Carregar a entidade Escola associada ao curso
+                .Include(c => c.ListaUCs) // Carregar a lista de Unidades Curriculares associadas ao curso
+                .FirstOrDefaultAsync(c => c.CodCurso == id); // Buscar pelo id do curso
 
-            if (cursos == null)
+            if (curso == null)
             {
                 return NotFound();
             }
 
-            return cursos;
+            // Retornar todos os detalhes do curso
+            var cursoComDetalhes = new
+            {
+                curso.CodCurso,
+                curso.Nome,
+                Escola = new { curso.Escola.Nome, curso.Escola.Id },  // Nome da Escola
+                ListaUcs = curso.ListaUCs.Select(uc => new { uc.Nome, uc.Id }).ToList() // Detalhes das Unidades Curriculares (Nome e id)
+            };
+
+            return Ok(cursoComDetalhes);
         }
 
         // PUT: api/API_Cursos/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCursos(int id, Cursos cursos)
+        public async Task<IActionResult> PutCursos(int id, Cursos curso)
         {
-            if (id != cursos.CodCurso)
+            if (id != curso.CodCurso)
             {
                 return BadRequest();
             }
 
-            _context.Entry(cursos).State = EntityState.Modified;
+            _context.Entry(curso).State = EntityState.Modified;
 
             try
             {
+                curso.Escola = await _context.Escolas.FindAsync(curso.Escola.Id); // Carrega a Escola associada ao curso
+
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
@@ -87,28 +101,51 @@ namespace GP_Backend.Controllers
             return NoContent();
         }
 
+        // Criar um Curso
         // POST: api/API_Cursos
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Cursos>> PostCursos(Cursos cursos)
+        public async Task<IActionResult> Create([FromBody] Cursos curso)
         {
-            _context.Cursos.Add(cursos);
-            await _context.SaveChangesAsync();
+            // Não é necessário atribuir um valor ao Id ou CodCurso
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    curso.Escola = await _context.Escolas.FindAsync(curso.Escola.Id); // Carrega a Escola associada ao curso                    
 
-            return CreatedAtAction("GetCursos", new { id = cursos.CodCurso }, cursos);
+                    // Adiciona o curso ao banco de dados sem incluir o campo de identidade
+                    _context.Add(curso);
+                    await _context.SaveChangesAsync();  // Salva o curso
+
+                    return Ok(new { message = "Curso criado com sucesso", id = curso.CodCurso });
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new { erro = ex.Message });
+                }
+            }
+
+            return BadRequest(new { erro = "Dados inválidos" });
         }
 
+        // Apagar um curso
         // DELETE: api/API_Cursos/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCursos(int id)
         {
+            // procura o curso pelo id
             var cursos = await _context.Cursos.FindAsync(id);
+            
+            // caso o curso não seja encontrado
             if (cursos == null)
             {
                 return NotFound();
             }
 
+            // remove o curso da BD
             _context.Cursos.Remove(cursos);
+            // efetua COMMIT na BD
             await _context.SaveChangesAsync();
 
             return NoContent();
