@@ -24,6 +24,14 @@ namespace GP_Backend.Controllers
             public TimeOnly HoraInicio { get; set; }
             public DateOnly Dia { get; set; }
         }
+        public class ManchaHorariaDto
+        {
+            public string TipoDeAula { get; set; }
+            public int NumSlots { get; set; }
+            public int DocenteFK { get; set; }
+            public int SalaFK { get; set; }
+            public int UCFK { get; set; }
+        }
         public API_ManchasHorariasController(ApplicationDbContext context,
             IHubContext<HorarioHub> hubContext)
         {
@@ -49,45 +57,53 @@ namespace GP_Backend.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ManchasHorarias>> GetManchasHorarias(int id)
         {
-            var manchasHorarias = await _context.ManchasHorarias.FindAsync(id);
+            var manchaHoraria = await _context.ManchasHorarias
+                .Include(m => m.Docente)
+                .Include(m => m.Sala)
+                .Include(m => m.UC)
+                .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (manchasHorarias == null)
+            if (manchaHoraria == null)
             {
                 return NotFound();
             }
 
-            return manchasHorarias;
+            return manchaHoraria;
         }
 
         // PUT: api/API_ManchasHorarias/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutManchasHorarias(int id, ManchasHorarias manchasHorarias)
+        public async Task<IActionResult> PutManchasHorarias(int id, [FromBody] ManchaHorariaDto body)
         {
-            if (id != manchasHorarias.Id)
+            var manchaHoraria = await _context.ManchasHorarias
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (manchaHoraria == null)
             {
-                return BadRequest();
+                return NotFound(new { erro = "Mancha Horária não encontrada" });
             }
 
-            _context.Entry(manchasHorarias).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ManchasHorariasExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+                manchaHoraria.TipoDeAula = body.TipoDeAula;
+                manchaHoraria.NumSlots = body.NumSlots;
+                manchaHoraria.DocenteFK = body.DocenteFK;
+                manchaHoraria.SalaFK = body.SalaFK;
+                manchaHoraria.UCFK = body.UCFK;
 
-            return NoContent();
+                _context.Update(manchaHoraria);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Editada com sucesso", id });
+            }
+            catch (Exception ex)
+            {
+                // Em caso de erro crítico, retornar erro com detalhes
+                return BadRequest(new { erro = ex.Message });
+            }
+           
         }
 
 
@@ -180,7 +196,7 @@ namespace GP_Backend.Controllers
         /// <param name="idSala"></param>
         /// <returns></returns>
         // GET: api/API_ManchasHorarias/5
-        [HttpGet("{idSala}")]
+        [HttpGet("sala/{idSala}")]
         public async Task<IActionResult> GetManchasHorariasPorSala(int idSala)
         {
             var manchasHorarias = await _context.ManchasHorarias
@@ -201,7 +217,7 @@ namespace GP_Backend.Controllers
         /// <param name="idDocente"></param>
         /// <returns></returns>
         // GET: api/API_ManchasHorarias/5
-        [HttpGet("{idDocente}")]
+        [HttpGet("docente/{idDocente}")]
         public async Task<IActionResult> GetManchasHorariasPorDocente(int idDocente)
         {
             var manchasHorarias = await _context.ManchasHorarias
@@ -222,7 +238,7 @@ namespace GP_Backend.Controllers
         /// <param name="idDocente"></param>
         /// <returns></returns>
         // GET: api/API_ManchasHorarias/5
-        [HttpGet("{idDocente}")]
+        [HttpGet("uc/{idUC}")]
         public async Task<IActionResult> GetManchasHorariasPorUC(int idUC)
         {
             var manchasHorarias = await _context.ManchasHorarias
