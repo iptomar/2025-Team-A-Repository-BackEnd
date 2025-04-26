@@ -8,7 +8,7 @@ namespace GP_Backend.Data;
 /// <summary>
 /// classe responsável pela criação e gestão da Base de dados
 /// </summary>
-public class ApplicationDbContext : IdentityDbContext<Utilizadores>
+public class ApplicationDbContext : IdentityDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
