@@ -7,18 +7,12 @@ namespace GP_Backend.Models
     /// <summary>
     /// Tabela de Utilizadores
     /// </summary>
-    public class Utilizadores : IdentityUser{
+    public class Utilizadores {
 
         [Key]
         public int Id { get; set; }
 
         public string Nome { get; set; }
-
-        public string Email { get; set; }
-
-        public string Password { get; set; }
-
-        public string Role { get; set; }
 
 
         /* ************************************************
@@ -27,15 +21,24 @@ namespace GP_Backend.Models
 
         // Relacionamento do tipo N-1
         [ForeignKey(nameof(Escola))]
-        public int EscolaFK { get; set; }
+        public int? EscolaFK { get; set; }
 
-        public Escolas Escola { get; set; }
+        public Escolas? Escola { get; set; }
 
         // Relacionamento do tipo N-1
         [ForeignKey(nameof(Curso))]
-        public int CursoFK { get; set; }
+        public int? CursoFK { get; set; }
 
-        public Cursos Curso { get; set; }
+        public Cursos? Curso { get; set; }
 
-}
+        /// <summary>
+        /// atributo para funcionar como FK
+        /// no relacionamento entre a 
+        /// base de dados do 'negócio' 
+        /// e a base de dados da 'autenticação'
+        /// </summary>
+        [StringLength(40)]
+        public string UserId { get; set; }
+
+    }
 }
