@@ -16,6 +16,7 @@ namespace GP_Backend.Models
         public string Nome { get; set; }
 
 
+
         /* ************************************************
          * Vamos criar as Relações (FKs) com outras tabelas
          * *********************************************** */

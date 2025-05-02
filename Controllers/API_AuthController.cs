@@ -38,7 +38,8 @@ namespace GP_Backend.Controllers
             //Cria o IdentityUser
             var identityUser = new IdentityUser
             {
-                UserName = model.Nome
+                UserName = model.Nome,
+                Email = model.Email
             };
 
             var result = await _userManager.CreateAsync(identityUser, model.Password);
@@ -49,11 +50,11 @@ namespace GP_Backend.Controllers
             // Cria o Utilizador
             var utilizador = new Utilizadores
             {
-                //Nome = model.Nome,
-                //EscolaFK = model.EscolaFK,
-                //CursoFK = model.CursoFK,
+                Nome = model.Nome,
+                EscolaFK = model.EscolaFK,
+                CursoFK = model.CursoFK,
 
-                //userID = identityUser.Id
+                UserID = identityUser.Id
             };
 
             _context.Utilizadores.Add(utilizador);

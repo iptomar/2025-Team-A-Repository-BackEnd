@@ -8,6 +8,9 @@ namespace GP_Backend.DTOs
         public string Nome { get; set; }
 
         [Required]
+        public string Email { get; set; }
+
+        [Required]
         public int EscolaFK { get; set; }
 
         [Required]
