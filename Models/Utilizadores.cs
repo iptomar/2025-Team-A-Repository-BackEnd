@@ -37,8 +37,8 @@ namespace GP_Backend.Models
         /// base de dados do 'negócio' 
         /// e a base de dados da 'autenticação'
         /// </summary>
-        [StringLength(40)]
-        public string UserId { get; set; }
+        
+        public string userID { get; set; }
 
     }
 }

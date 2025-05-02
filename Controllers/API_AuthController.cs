@@ -53,7 +53,7 @@ namespace GP_Backend.Controllers
                 EscolaFK = model.EscolaFK,
                 CursoFK = model.CursoFK,
 
-                UserId = identityUser.Id
+                //UserId = identityUser.Id
             };
 
             _context.Utilizadores.Add(utilizador);
