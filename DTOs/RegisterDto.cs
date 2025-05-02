@@ -5,10 +5,13 @@ namespace GP_Backend.DTOs
     public class RegisterDto
     {
         [Required]
-        public string Escola { get; set; }
+        public string Nome { get; set; }
 
         [Required]
-        public string Curso { get; set; }
+        public int EscolaFK { get; set; }
+
+        [Required]
+        public int CursoFK { get; set; }
 
         [Required]
         public string Password { get; set; }
