@@ -49,11 +49,11 @@ namespace GP_Backend.Controllers
             // Cria o Utilizador
             var utilizador = new Utilizadores
             {
-                Nome = model.Nome,
-                EscolaFK = model.EscolaFK,
-                CursoFK = model.CursoFK,
+                //Nome = model.Nome,
+                //EscolaFK = model.EscolaFK,
+                //CursoFK = model.CursoFK,
 
-                //UserId = identityUser.Id
+                //userID = identityUser.Id
             };
 
             _context.Utilizadores.Add(utilizador);

@@ -4,6 +4,7 @@ using GP_Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GP_Backend.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250502155251_teste")]
+    partial class teste
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -247,25 +250,7 @@ namespace GP_Backend.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CursoFK")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("EscolaFK")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("CursoFK");
-
-                    b.HasIndex("EscolaFK");
 
                     b.ToTable("Utilizadores");
                 });
@@ -567,21 +552,6 @@ namespace GP_Backend.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Curso");
-                });
-
-            modelBuilder.Entity("GP_Backend.Models.Utilizadores", b =>
-                {
-                    b.HasOne("GP_Backend.Models.Cursos", "Curso")
-                        .WithMany()
-                        .HasForeignKey("CursoFK");
-
-                    b.HasOne("GP_Backend.Models.Escolas", "Escola")
-                        .WithMany()
-                        .HasForeignKey("EscolaFK");
-
-                    b.Navigation("Curso");
-
-                    b.Navigation("Escola");
                 });
 
             modelBuilder.Entity("HorariosManchasHorarias", b =>

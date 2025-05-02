@@ -7,7 +7,8 @@ namespace GP_Backend.Models
     /// <summary>
     /// Tabela de Utilizadores
     /// </summary>
-    public class Utilizadores {
+    public class Utilizadores
+    {
 
         [Key]
         public int Id { get; set; }
@@ -37,8 +38,8 @@ namespace GP_Backend.Models
         /// base de dados do 'negócio' 
         /// e a base de dados da 'autenticação'
         /// </summary>
-        
-        public string userID { get; set; }
+
+        public string UserID { get; set; }
 
     }
 }
