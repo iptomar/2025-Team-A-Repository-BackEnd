@@ -38,7 +38,7 @@ namespace GP_Backend.Controllers
             //Cria o IdentityUser
             var identityUser = new IdentityUser
             {
-                UserName = model.Nome,
+                UserName = model.Email,
                 Email = model.Email
             };
 
