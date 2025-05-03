@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
 using GP_Backend.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace GP_Backend.Data;
 
@@ -24,5 +25,20 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<Turmas> Turmas { get; set; }
     public DbSet<Horarios> Horarios { get; set; }
     public DbSet<ManchasHorarias> ManchasHorarias { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+
+        base.OnModelCreating(modelBuilder);
+
+        // Criar dados das ROLES
+        modelBuilder.Entity<IdentityRole>().HasData(
+           new IdentityRole { Id = "A", Name = "Administrator", NormalizedName = "ADMINISTRATOR" },
+           new IdentityRole { Id = "CH", Name = "ComissaoHorarios", NormalizedName = "COMISSAOHORARIOS" },
+           new IdentityRole { Id = "CC", Name = "ComissaoCurso", NormalizedName = "COMISSAOCURSO" }
+
+        );
+    }
+
 }
 
