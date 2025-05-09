@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace GP_Backend.Migrations
+namespace GP_Backend.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250502094240_inicial")]
-    partial class inicial
+    [Migration("20250321215022_MigracaoInicial1")]
+    partial class MigracaoInicial1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -134,14 +134,8 @@ namespace GP_Backend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateOnly>("Dia")
-                        .HasColumnType("date");
-
                     b.Property<int>("DocenteFK")
                         .HasColumnType("int");
-
-                    b.Property<TimeOnly>("HoraInicio")
-                        .HasColumnType("time");
 
                     b.Property<int>("NumSlots")
                         .HasColumnType("int");
@@ -197,7 +191,7 @@ namespace GP_Backend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AnoCurso")
+                    b.Property<string>("AnoLetivo")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -250,20 +244,27 @@ namespace GP_Backend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CursoFK")
+                    b.Property<int>("CursoFK")
                         .HasColumnType("int");
 
-                    b.Property<int?>("EscolaFK")
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EscolaFK")
                         .HasColumnType("int");
 
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
+                    b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -434,10 +435,12 @@ namespace GP_Backend.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -474,10 +477,12 @@ namespace GP_Backend.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -577,11 +582,15 @@ namespace GP_Backend.Migrations
                 {
                     b.HasOne("GP_Backend.Models.Cursos", "Curso")
                         .WithMany()
-                        .HasForeignKey("CursoFK");
+                        .HasForeignKey("CursoFK")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("GP_Backend.Models.Escolas", "Escola")
                         .WithMany()
-                        .HasForeignKey("EscolaFK");
+                        .HasForeignKey("EscolaFK")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Curso");
 
