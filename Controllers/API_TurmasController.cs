@@ -62,7 +62,7 @@ namespace GP_Backend.Controllers
                 return BadRequest("O campo nome não pode estar vazio.");
             }
 
-            if (string.IsNullOrWhiteSpace(turmas.AnoLetivo))
+            if (string.IsNullOrWhiteSpace(turmas.AnoCurso))
             {
                 return BadRequest("O campo ano letivo não pode estar vazio.");
             }
@@ -87,7 +87,7 @@ namespace GP_Backend.Controllers
             }
 
             var existingTurma = await _context.Turmas
-                .FirstOrDefaultAsync(t => t.Nome == turmas.Nome && t.AnoLetivo == turmas.AnoLetivo && t.CursoFK == turmas.CursoFK && t.Id != id);
+                .FirstOrDefaultAsync(t => t.Nome == turmas.Nome && t.AnoCurso == turmas.AnoCurso && t.CursoFK == turmas.CursoFK && t.Id != id);
             if (existingTurma != null)
             {
                 return Conflict("A turma já existe.");
@@ -130,7 +130,7 @@ namespace GP_Backend.Controllers
                 return BadRequest("O campo nome não pode estar vazio.");
             }
 
-            if (string.IsNullOrWhiteSpace(turmas.AnoLetivo))
+            if (string.IsNullOrWhiteSpace(turmas.AnoCurso))
             {
                 return BadRequest("O campo ano letivo não pode estar vazio.");
             }
@@ -150,7 +150,7 @@ namespace GP_Backend.Controllers
             }
 
             var existingTurma = await _context.Turmas
-                .FirstOrDefaultAsync(t => t.Nome == turmas.Nome && t.AnoLetivo == turmas.AnoLetivo && t.CursoFK == turmas.CursoFK);
+                .FirstOrDefaultAsync(t => t.Nome == turmas.Nome && t.AnoCurso == turmas.AnoCurso && t.CursoFK == turmas.CursoFK);
             if (existingTurma != null)
             {
                 return Conflict("A turma já existe.");

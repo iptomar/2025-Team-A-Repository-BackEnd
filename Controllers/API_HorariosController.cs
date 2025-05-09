@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GP_Backend.Data;
 using GP_Backend.Models;
+using Newtonsoft.Json;
 
 namespace GP_Backend.Controllers
 {
@@ -15,6 +16,18 @@ namespace GP_Backend.Controllers
     public class API_HorariosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+
+        public class HorarioDto
+        {
+            public int Id { get; set; }
+            public string AnoLetivo { get; set; }
+            public string Semestre { get; set; }
+            public int TurmaId { get; set; }
+            public string NomeTurma { get; set; }
+            public string AnoCurso { get; set; }
+            public string TurmaCurso { get; set; }
+        }
+
 
         public API_HorariosController(ApplicationDbContext context)
         {
@@ -25,21 +38,36 @@ namespace GP_Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Horarios>>> GetHorarios()
         {
-            return await _context.Horarios.ToListAsync();
+            var horariosComRelacionamentos = await _context.Horarios
+               .Include(h => h.Turma)
+               .Select(h => new HorarioDto
+               {
+                   Id = h.Id,
+                   AnoLetivo = h.AnoLetivo,
+                   Semestre = h.Semestre,
+                   TurmaId = h.TurmaFK,
+                   NomeTurma = h.Turma.Nome,
+                   AnoCurso = h.Turma.AnoCurso,
+                   TurmaCurso = h.Turma.Curso.Nome,
+               })
+               .ToListAsync();
+
+            return Ok(horariosComRelacionamentos);
+            //return await _context.Horarios.ToListAsync();
         }
 
         // GET: api/API_Horarios/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Horarios>> GetHorarios(int id)
         {
-            var horarios = await _context.Horarios.FindAsync(id);
+            var horario = await _context.Horarios.FindAsync(id);
 
-            if (horarios == null)
+            if (horario == null)
             {
                 return NotFound();
             }
 
-            return horarios;
+            return horario;
         }
 
         // PUT: api/API_Horarios/5
@@ -76,12 +104,55 @@ namespace GP_Backend.Controllers
         // POST: api/API_Horarios
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Horarios>> PostHorarios(Horarios horarios)
+        public async Task<ActionResult> PostHorarios()
         {
-            _context.Horarios.Add(horarios);
-            await _context.SaveChangesAsync();
+            try
+            {
+                using (var reader = new StreamReader(Request.Body))
+                {
+                    var body = await reader.ReadToEndAsync();
+                    dynamic data = JsonConvert.DeserializeObject(body);
 
-            return CreatedAtAction("GetHorarios", new { id = horarios.Id }, horarios);
+                    if (data == null)
+                    {
+                        return BadRequest("Json Inválido, não enviou os dados");
+                    }
+                    if (data.anoLetivo == null)
+                    {
+                        return BadRequest("Json Inválido, não enviou o ano letivo");
+                    }
+                    if (data.semestre == null)
+                    {
+                        return BadRequest("Json Inválido, não enviou o semestre");
+                    }
+                    if (data.turmaFK == null)
+                    {
+                        return BadRequest("Json Inválido, não enviou a Turma");
+                    }
+
+                    var horario = new Horarios
+                    {
+                        AnoLetivo = (string)data.anoLetivo,
+                        Semestre = (string)data.semestre,
+                        TurmaFK = (int)data.turmaFK
+                    };
+
+                    if (ModelState.IsValid)
+                    {
+
+                        _context.Add(horario);
+                        await _context.SaveChangesAsync();
+
+                        return Ok(horario);
+                    }
+
+                    return Ok(horario);
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { erro = ex.Message, innerError = ex.InnerException?.Message });
+            }
         }
 
         // DELETE: api/API_Horarios/5

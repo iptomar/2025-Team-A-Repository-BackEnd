@@ -4,6 +4,7 @@ using GP_Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GP_Backend.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250502083322_tirarRelacionamento1-MTurmasHorarios")]
+    partial class tirarRelacionamento1MTurmasHorarios
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -194,7 +197,7 @@ namespace GP_Backend.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AnoCurso")
+                    b.Property<string>("AnoLetivo")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -513,7 +516,7 @@ namespace GP_Backend.Data.Migrations
             modelBuilder.Entity("GP_Backend.Models.Horarios", b =>
                 {
                     b.HasOne("GP_Backend.Models.Turmas", "Turma")
-                        .WithMany("Horarios")
+                        .WithMany()
                         .HasForeignKey("TurmaFK")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -656,11 +659,6 @@ namespace GP_Backend.Data.Migrations
                     b.Navigation("ListaCursos");
 
                     b.Navigation("ListaSalas");
-                });
-
-            modelBuilder.Entity("GP_Backend.Models.Turmas", b =>
-                {
-                    b.Navigation("Horarios");
                 });
 #pragma warning restore 612, 618
         }

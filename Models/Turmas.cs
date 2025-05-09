@@ -22,7 +22,7 @@ namespace GP_Backend.Models
 
         public string Nome { get; set; }
 
-        public string AnoLetivo { get; set; }
+        public string AnoCurso { get; set; }
 
         /* ************************************************
          * Vamos criar as Relações (FKs) com outras tabelas
