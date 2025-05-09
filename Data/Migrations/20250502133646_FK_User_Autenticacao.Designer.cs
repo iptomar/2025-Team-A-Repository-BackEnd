@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GP_Backend.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250426173157_FK_User_Autenticacao")]
+    [Migration("20250502133646_FK_User_Autenticacao")]
     partial class FK_User_Autenticacao
     {
         /// <inheritdoc />
