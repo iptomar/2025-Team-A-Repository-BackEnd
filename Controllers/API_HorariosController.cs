@@ -17,6 +17,18 @@ namespace GP_Backend.Controllers
     {
         private readonly ApplicationDbContext _context;
 
+        public class HorarioDto
+        {
+            public int Id { get; set; }
+            public string AnoLetivo { get; set; }
+            public string Semestre { get; set; }
+            public int TurmaId { get; set; }
+            public string NomeTurma { get; set; }
+            public string AnoCurso { get; set; }
+            public string TurmaCurso { get; set; }
+        }
+
+
         public API_HorariosController(ApplicationDbContext context)
         {
             _context = context;
@@ -28,6 +40,16 @@ namespace GP_Backend.Controllers
         {
             var horariosComRelacionamentos = await _context.Horarios
                .Include(h => h.Turma)
+               .Select(h => new HorarioDto
+               {
+                   Id = h.Id,
+                   AnoLetivo = h.AnoLetivo,
+                   Semestre = h.Semestre,
+                   TurmaId = h.TurmaFK,
+                   NomeTurma = h.Turma.Nome,
+                   AnoCurso = h.Turma.AnoCurso,
+                   TurmaCurso = h.Turma.Curso.Nome,
+               })
                .ToListAsync();
 
             return Ok(horariosComRelacionamentos);
@@ -127,9 +149,9 @@ namespace GP_Backend.Controllers
                     return Ok(horario);
                 }
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
-                return BadRequest(new { erro = ex.Message });
+                return BadRequest(new { erro = ex.Message, innerError = ex.InnerException?.Message });
             }
         }
 
