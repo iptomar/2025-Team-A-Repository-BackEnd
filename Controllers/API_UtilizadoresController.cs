@@ -145,17 +145,28 @@ namespace GP_Backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUtilizadores(int id)
         {
-            var utilizadores = await _context.Utilizadores.FindAsync(id);
-            if (utilizadores == null)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            var utilizador = await _context.Utilizadores.FindAsync(id);
+            if (utilizador == null)
             {
                 return NotFound();
             }
 
-            _context.Utilizadores.Remove(utilizadores);
+            _context.Utilizadores.Remove(utilizador);
+
+            var aspUser = await _context.Users.FindAsync(utilizador.UserID);
+            if (aspUser != null)
+            {
+                _context.Users.Remove(aspUser);
+            }
+
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return NoContent();
         }
+
 
         private bool UtilizadoresExists(int id)
         {
