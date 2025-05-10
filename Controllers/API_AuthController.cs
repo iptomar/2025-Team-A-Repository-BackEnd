@@ -64,5 +64,25 @@ namespace GP_Backend.Controllers
             return Ok("Registo efetuado com sucesso.");
         }
 
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDto model)
+        {
+            // Procurar o utilizador pelo email
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                return Unauthorized("Email ou password inválidos.");
+
+            // Verificar se o email está confirmado
+            if (!user.EmailConfirmed)
+                return Unauthorized("O email ainda não foi confirmado.");
+
+            // Verificar se a password está correta
+            var passwordValid = await _userManager.CheckPasswordAsync(user, model.Password);
+            if (!passwordValid)
+                return Unauthorized("Email ou password inválidos.");
+
+            // Login bem-sucedido
+            return Ok("Login efetuado com sucesso.");
+        }
     }
 }
