@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using GP_Backend.Data;
 using GP_Backend.Models;
 using GP_Backend.DTOs;
+using Microsoft.AspNetCore.Identity;
 
 namespace GP_Backend.Controllers
 {
@@ -59,14 +60,14 @@ namespace GP_Backend.Controllers
             return result;
         }
 
-                
+
         // GET: api/API_Utilizadores/5
         [HttpGet("{id}")]
         public async Task<ActionResult<UtilizadorDTO>> GetUtilizadores(int id)
         {
             var utilizador = await _context.Utilizadores
-                .Include(u => u.Escola)
-                .Include(u => u.Curso)
+                .Include(u => u.Escola)  
+                .Include(u => u.Curso)   
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             if (utilizador == null)
@@ -82,15 +83,21 @@ namespace GP_Backend.Controllers
                     .Select(r => r.Name)
                     .FirstOrDefaultAsync()
                 : null;
+            var roleId = userRole != null
+                ? userRole.RoleId
+                : null;
 
             var dto = new UtilizadorDTO
             {
                 Id = utilizador.Id,
                 Nome = utilizador.Nome,
-                EscolaNome = utilizador.Escola?.Nome,
-                CursoNome = utilizador.Curso?.Nome,
+                EscolaNome = utilizador.Escola?.Nome,  
+                EscolaId = utilizador.Escola?.Id ?? null,  
+                CursoNome = utilizador.Curso?.Nome,     
+                CodCurso = utilizador.Curso?.CodCurso ?? null,  
                 UserID = utilizador.UserID,
                 Role = roleName,
+                RoleId = roleId,
                 Email = aspUser?.Email,
                 EmailConfirmed = aspUser?.EmailConfirmed ?? false
             };
@@ -100,16 +107,62 @@ namespace GP_Backend.Controllers
 
 
         // PUT: api/API_Utilizadores/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUtilizadores(int id, Utilizadores utilizadores)
+        public async Task<IActionResult> PutUtilizador(int id, [FromBody] UtilizadorUpdateDTO dto)
         {
-            if (id != utilizadores.Id)
-            {
+            if (id != dto.Id)
                 return BadRequest();
+
+            // Verifica se o utilizador existe
+            var utilizador = await _context.Utilizadores.FindAsync(id);
+            if (utilizador == null)
+                return NotFound();
+
+            // Atualiza os campos do utilizador
+            utilizador.Nome = dto.Nome;
+            utilizador.CursoFK = dto.CodCurso;
+            utilizador.EscolaFK = dto.EscolaId;
+            _context.Entry(utilizador).State = EntityState.Modified;
+
+            // Atualiza o utilizador no ASP.NET Identity
+            var aspUser = await _context.Users.FindAsync(utilizador.UserID);
+            if (aspUser != null)
+            {
+                aspUser.EmailConfirmed = dto.EmailConfirmed;
+                _context.Entry(aspUser).State = EntityState.Modified;
+            }
+            else
+            {
+                return NotFound("Usuário não encontrado no ASP.NET Identity.");
             }
 
-            _context.Entry(utilizadores).State = EntityState.Modified;
+            // Se o RoleId for fornecido, remove as roles atuais e adicione a nova role
+            if (!string.IsNullOrEmpty(dto.RoleId))
+            {
+                // Remover todas as roles atuais
+                var currentRoles = _context.UserRoles.Where(r => r.UserId == utilizador.UserID);
+                _context.UserRoles.RemoveRange(currentRoles);
+
+                // Verifica se a role existe
+                var role = await _context.Roles.FindAsync(dto.RoleId);
+                if (role == null)
+                {
+                    return BadRequest("Role não existe.");
+                }
+
+                // Adiciona a nova role
+                _context.UserRoles.Add(new IdentityUserRole<string>
+                {
+                    UserId = utilizador.UserID,
+                    RoleId = dto.RoleId
+                });
+            }
+            else
+            {
+                // Se o RoleId for nulo ou vazio, o utilizador não terá roles associadas
+                var currentRoles = _context.UserRoles.Where(r => r.UserId == utilizador.UserID);
+                _context.UserRoles.RemoveRange(currentRoles);
+            }
 
             try
             {
@@ -124,7 +177,7 @@ namespace GP_Backend.Controllers
                 else
                 {
                     throw;
-                }
+            }
             }
 
             return NoContent();
