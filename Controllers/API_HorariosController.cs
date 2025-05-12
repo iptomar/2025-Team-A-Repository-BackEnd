@@ -80,6 +80,11 @@ namespace GP_Backend.Controllers
                 return BadRequest();
             }
 
+            if (horarios.Bloqueado)
+            {
+                return BadRequest("Não é possível editar um horário bloqueado");
+            }
+
             _context.Entry(horarios).State = EntityState.Modified;
 
             try
@@ -174,6 +179,38 @@ namespace GP_Backend.Controllers
         private bool HorariosExists(int id)
         {
             return _context.Horarios.Any(e => e.Id == id);
+        }
+
+        [HttpPut("Bloquear/{id}")]
+        public async Task<IActionResult> BloquearHorario(int id)
+        {
+            var horario = await _context.Horarios.FindAsync(id);
+
+            if (horario == null)
+            {
+                return NotFound();
+            }
+
+            horario.Bloqueado = true;
+            _context.Entry(horario).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!HorariosExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok(horario);
         }
     }
 }

@@ -23,6 +23,8 @@ namespace GP_Backend.Models
 
         public string Semestre { get; set; }
 
+        public Boolean Bloqueado { get; set; } = false;
+
         /* ************************************************
          * Vamos criar as Relações (FKs) com outras tabelas
          * *********************************************** */
