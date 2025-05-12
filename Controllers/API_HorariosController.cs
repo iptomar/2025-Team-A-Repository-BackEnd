@@ -212,5 +212,33 @@ namespace GP_Backend.Controllers
 
             return Ok(horario);
         }
+
+        [HttpPut("Desbloquear/{id}")]
+        public async Task<IActionResult> DesbloquearHorario(int id)
+        {
+            var horario = await _context.Horarios.FindAsync(id);
+            if (horario == null)
+            {
+                return NotFound();
+            }
+            horario.Bloqueado = false;
+            _context.Entry(horario).State = EntityState.Modified;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!HorariosExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return Ok(horario);
+        }
     }
 }
