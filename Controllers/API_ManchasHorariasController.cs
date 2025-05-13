@@ -222,10 +222,11 @@ namespace GP_Backend.Controllers
         // PUT: api/API_ManchasHorarias/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutManchasHorarias(int id, [FromBody] ManchaHorariaDto body)
+        public async Task<IActionResult> PutManchasHorarias(int id, [FromBody] ManchaHorariaDto dto)
         {
             var manchaHoraria = await _context.ManchasHorarias
-                .FirstOrDefaultAsync(m => m.Id == id);
+    .Include(m => m.ListaHorarios)
+    .FirstOrDefaultAsync(m => m.Id == id);
 
             if (manchaHoraria == null)
             {
@@ -235,13 +236,35 @@ namespace GP_Backend.Controllers
 
             try
             {
-                manchaHoraria.TipoDeAula = body.TipoDeAula;
-                manchaHoraria.NumSlots = body.NumSlots;
-                manchaHoraria.DocenteFK = body.DocenteFK;
-                manchaHoraria.SalaFK = body.SalaFK;
-                manchaHoraria.UCFK = body.UCFK;
+                // Buscar os horários válidos
+                var horarios = await _context.Horarios
+                    .Where(h => dto.HorariosIds.Contains(h.Id))
+                    .ToListAsync();
 
-                
+                if (horarios.Count != dto.HorariosIds.Count)
+                {
+                    return BadRequest(new { erro = "Um ou mais IDs de horários são inválidos." });
+                }
+                manchaHoraria.TipoDeAula = dto.TipoDeAula;
+                manchaHoraria.NumSlots = dto.NumSlots;
+                manchaHoraria.DocenteFK = dto.DocenteFK;
+                manchaHoraria.SalaFK = dto.SalaFK;
+                manchaHoraria.UCFK = dto.UCFK;
+                //manchaHoraria.ListaHorarios = horarios;
+
+                // Atualizar os horarios associados
+                manchaHoraria.ListaHorarios.Clear();
+                await _context.SaveChangesAsync();
+                foreach (var h in horarios)
+                {
+                    var horarioExistente = await _context.Horarios.FindAsync(h.Id);
+                    if (horarioExistente != null)
+                    {
+                        manchaHoraria.ListaHorarios.Add(horarioExistente);
+                    }
+                }
+
+
 
                 _context.Update(manchaHoraria);
                 await _context.SaveChangesAsync();
