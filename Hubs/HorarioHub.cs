@@ -12,5 +12,14 @@ namespace GP_Backend.Hubs
                 dia
             });
         }
+
+        public async Task NotificarBloqueioHorario(int id, bool bloqueado)
+        {
+            await Clients.All.SendAsync("HorarioBloqueado", new
+            {
+                id,
+                bloqueado
+            });
+        }
     }
 }
