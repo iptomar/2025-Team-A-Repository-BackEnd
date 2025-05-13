@@ -9,6 +9,7 @@ using GP_Backend.Data;
 using GP_Backend.Models;
 using GP_Backend.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.IdentityModel.Tokens;
 
 namespace GP_Backend.Controllers
 {
@@ -31,7 +32,67 @@ namespace GP_Backend.Controllers
             public int DocenteFK { get; set; }
             public int SalaFK { get; set; }
             public int UCFK { get; set; }
+
+            public List<int> HorariosIds { get; set; }
         }
+
+        public class ManchaHorariaDTOGET
+        {
+            public int Id { get; set; }
+            public string TipoDeAula { get; set; }
+            public int NumSlots { get; set; }
+            public TimeOnly HoraInicio { get; set; }
+            public DateOnly Dia { get; set; }
+
+            public SalaDTO Sala { get; set; }
+            public UCDTO UC { get; set; }
+            public DocenteDTO Docente { get; set; }
+
+            public List<HorarioDTO> ListaHorarios { get; set; }
+        }
+
+        public class SalaDTO
+        {
+            public int Id { get; set; }
+            public string Nome { get; set; }
+        }
+
+        public class UCDTO
+        {
+            public int Id { get; set; }
+            public string Nome { get; set; }
+        }
+
+        public class DocenteDTO
+        {
+            public int Id { get; set; }
+            public string Nome { get; set; }
+        }
+
+        public class HorarioDTO
+        {
+            public int Id { get; set; }
+            public TurmaDTO Turma { get; set; }
+            public string AnoLetivo { get; set; }
+            public string Semestre { get; set; }
+        }
+
+        public class TurmaDTO
+        {
+            public int Id { get; set; }
+            public string Nome { get; set; }
+            public string AnoCurso { get; set; }
+
+            public CursoDTO Curso { get; set; }
+
+        }
+        public class CursoDTO
+        {
+            public int Id { get; set; }
+
+            public string Nome { get; set; }
+        }
+
         public API_ManchasHorariasController(ApplicationDbContext context,
             IHubContext<HorarioHub> hubContext)
         {
@@ -43,14 +104,57 @@ namespace GP_Backend.Controllers
             [HttpGet]
         public async Task<ActionResult<IEnumerable<ManchasHorarias>>> GetManchasHorarias()
         {
-            var manchasComRelacionamentos = await _context.ManchasHorarias
-                .Include(m => m.Docente)
-                .Include(m => m.Sala)
-                .Include(m => m.UC)
-                .ToListAsync();
 
-            return Ok(manchasComRelacionamentos);
-            // return await _context.ManchasHorarias.ToListAsync();
+            var manchas = await _context.ManchasHorarias
+        .Include(m => m.Sala)
+        .Include(m => m.UC)
+        .Include(m => m.Docente)
+        .Include(m => m.ListaHorarios)
+            .ThenInclude(h => h.Turma) // continua a usar TurmaCurso no EF
+            .ThenInclude(h => h.Curso)
+        .Select(m => new ManchaHorariaDTOGET
+        {
+            Id = m.Id,
+            TipoDeAula = m.TipoDeAula,
+            NumSlots = m.NumSlots,
+            HoraInicio = m.HoraInicio,
+            Dia = m.Dia,
+            Sala = new SalaDTO
+            {
+                Id = m.Sala.Id,
+                Nome = m.Sala.Nome
+            },
+            UC = new UCDTO
+            {
+                Id = m.UC.Id,
+                Nome = m.UC.Nome
+            },
+            Docente = new DocenteDTO
+            {
+                Id = m.Docente.Id,
+                Nome = m.Docente.Nome
+            },
+            ListaHorarios = m.ListaHorarios.Select(h => new HorarioDTO
+            {
+                Id = h.Id,
+                Turma = new TurmaDTO
+                {
+                    Id = h.Turma.Id,
+                    Nome = h.Turma.Nome,
+                    AnoCurso = h.Turma.AnoCurso,
+                    Curso = new CursoDTO
+                    {
+                        Id = h.Turma.Curso.CodCurso,
+                        Nome = h.Turma.Curso.Nome
+                    }
+                },
+                AnoLetivo = h.AnoLetivo,
+                Semestre = h.Semestre,
+            }).ToList()
+        })
+        .ToListAsync();
+
+            return Ok(manchas);
         }
 
         // GET: api/API_ManchasHorarias/5
@@ -58,26 +162,71 @@ namespace GP_Backend.Controllers
         public async Task<ActionResult<ManchasHorarias>> GetManchasHorarias(int id)
         {
             var manchaHoraria = await _context.ManchasHorarias
-                .Include(m => m.Docente)
-                .Include(m => m.Sala)
-                .Include(m => m.UC)
-                .FirstOrDefaultAsync(m => m.Id == id);
+        .Include(m => m.Sala)
+        .Include(m => m.UC)
+        .Include(m => m.Docente)
+        .Include(m => m.ListaHorarios)
+            .ThenInclude(h => h.Turma) // continua a usar TurmaCurso no EF
+            .ThenInclude(h => h.Curso)
+        .Where(m => m.Id == id) // Filtra pela mancha horária com o ID específico
+        .Select(m => new ManchaHorariaDTOGET
+        {
+            Id = m.Id,
+            TipoDeAula = m.TipoDeAula,
+            NumSlots = m.NumSlots,
+            HoraInicio = m.HoraInicio,
+            Dia = m.Dia,
+            Sala = new SalaDTO
+            {
+                Id = m.Sala.Id,
+                Nome = m.Sala.Nome
+            },
+            UC = new UCDTO
+            {
+                Id = m.UC.Id,
+                Nome = m.UC.Nome
+            },
+            Docente = new DocenteDTO
+            {
+                Id = m.Docente.Id,
+                Nome = m.Docente.Nome
+            },
+            ListaHorarios = m.ListaHorarios.Select(h => new HorarioDTO
+            {
+                Id = h.Id,
+                Turma = new TurmaDTO
+                {
+                    Id = h.Turma.Id,
+                    Nome = h.Turma.Nome,
+                    AnoCurso = h.Turma.AnoCurso,
+                    Curso = new CursoDTO
+                    {
+                        Id = h.Turma.Curso.CodCurso,
+                        Nome = h.Turma.Curso.Nome
+                    }
+                },
+                AnoLetivo = h.AnoLetivo,
+                Semestre = h.Semestre,
+            }).ToList()
+        })
+        .FirstOrDefaultAsync();
 
             if (manchaHoraria == null)
             {
                 return NotFound();
             }
 
-            return manchaHoraria;
+            return Ok(manchaHoraria);
         }
 
         // PUT: api/API_ManchasHorarias/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutManchasHorarias(int id, [FromBody] ManchaHorariaDto body)
+        public async Task<IActionResult> PutManchasHorarias(int id, [FromBody] ManchaHorariaDto dto)
         {
             var manchaHoraria = await _context.ManchasHorarias
-                .FirstOrDefaultAsync(m => m.Id == id);
+    .Include(m => m.ListaHorarios)
+    .FirstOrDefaultAsync(m => m.Id == id);
 
             if (manchaHoraria == null)
             {
@@ -87,11 +236,35 @@ namespace GP_Backend.Controllers
 
             try
             {
-                manchaHoraria.TipoDeAula = body.TipoDeAula;
-                manchaHoraria.NumSlots = body.NumSlots;
-                manchaHoraria.DocenteFK = body.DocenteFK;
-                manchaHoraria.SalaFK = body.SalaFK;
-                manchaHoraria.UCFK = body.UCFK;
+                // Buscar os horários válidos
+                var horarios = await _context.Horarios
+                    .Where(h => dto.HorariosIds.Contains(h.Id))
+                    .ToListAsync();
+
+                if (horarios.Count != dto.HorariosIds.Count)
+                {
+                    return BadRequest(new { erro = "Um ou mais IDs de horários são inválidos." });
+                }
+                manchaHoraria.TipoDeAula = dto.TipoDeAula;
+                manchaHoraria.NumSlots = dto.NumSlots;
+                manchaHoraria.DocenteFK = dto.DocenteFK;
+                manchaHoraria.SalaFK = dto.SalaFK;
+                manchaHoraria.UCFK = dto.UCFK;
+                //manchaHoraria.ListaHorarios = horarios;
+
+                // Atualizar os horarios associados
+                manchaHoraria.ListaHorarios.Clear();
+                await _context.SaveChangesAsync();
+                foreach (var h in horarios)
+                {
+                    var horarioExistente = await _context.Horarios.FindAsync(h.Id);
+                    if (horarioExistente != null)
+                    {
+                        manchaHoraria.ListaHorarios.Add(horarioExistente);
+                    }
+                }
+
+
 
                 _context.Update(manchaHoraria);
                 await _context.SaveChangesAsync();
@@ -135,54 +308,118 @@ namespace GP_Backend.Controllers
 
         // POST: api/API_ManchasHorarias
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
         [HttpPost]
-        public async Task<ActionResult> PostManchasHorarias([FromForm] string tipoAula, [FromForm] int numSlots, [FromForm] TimeOnly horaInicio, [FromForm] DateOnly diaSemana, [FromForm] int docenteFK, [FromForm] int salaFK, [FromForm] int ucFK)
+        public async Task<IActionResult> PostManchasHorarias([FromBody] ManchaHorariaDto dto)
         {
-            // Verifificar se os campos obrigatórios estão preenchidos
-            if (tipoAula == null || numSlots == 0 || docenteFK <= 0 || salaFK <= 0 || ucFK <= 0)
+            if (dto == null)
+                return BadRequest(new { erro = "Dados não enviados." });
+
+            bool haErros = false;
+
+            // Validações básicas
+            if (string.IsNullOrWhiteSpace(dto.TipoDeAula))
             {
-                return BadRequest("Preencha os campos corretamente!");
+                haErros = true;
+                return BadRequest(new { erro = "Tipo de aula é obrigatório." });
             }
 
-            var manchaHoraria = new ManchasHorarias
+            if (dto.NumSlots <= 0)
             {
-                TipoDeAula = tipoAula,
-                HoraInicio = horaInicio,
-                Dia = diaSemana,
-                NumSlots = numSlots,
-                DocenteFK = docenteFK,
-                SalaFK = salaFK,
-                UCFK = ucFK,
-            };
-
-            if (ModelState.IsValid)
-            {
-
-                _context.Add(manchaHoraria);
-                await _context.SaveChangesAsync();
-
-                return Ok(manchaHoraria);
+                haErros = true;
+                return BadRequest(new { erro = "Número de slots deve ser maior que zero." });
             }
 
-            return BadRequest("Não deu!");
+            if (dto.DocenteFK <= 0 || dto.SalaFK <= 0 || dto.UCFK <= 0)
+            {
+                haErros = true;
+                return BadRequest(new { erro = "Docente, sala ou UC inválidos." });
+            }
 
+            if (dto.HorariosIds == null || !dto.HorariosIds.Any())
+            {
+                haErros = true;
+                return BadRequest(new { erro = "Deve associar pelo menos um horário." });
+            }
 
+            if (ModelState.IsValid && !haErros)
+            {
+                try
+                {
+                    // Buscar os horários válidos
+                    var horarios = await _context.Horarios
+                        .Where(h => dto.HorariosIds.Contains(h.Id))
+                        .ToListAsync();
+
+                    if (horarios.Count != dto.HorariosIds.Count)
+                    {
+                        return BadRequest(new { erro = "Um ou mais IDs de horários são inválidos." });
+                    }
+
+                    // Criação da nova mancha
+                    var novaMancha = new ManchasHorarias
+                    {
+                        TipoDeAula = dto.TipoDeAula,
+                        NumSlots = dto.NumSlots,
+                        DocenteFK = dto.DocenteFK,
+                        SalaFK = dto.SalaFK,
+                        UCFK = dto.UCFK,
+                        //HoraInicio = dto.HoraInicio ?? new TimeOnly(0, 0),
+                       // Dia = dto.DiaSemana ?? DateOnly.FromDateTime(DateTime.Today),
+                        ListaHorarios = horarios
+                    };
+
+                    _context.ManchasHorarias.Add(novaMancha);
+                    await _context.SaveChangesAsync();
+
+                    return Ok(new { message = "Mancha horária criada com sucesso", id = novaMancha.Id });
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, new
+                    {
+                        erro = "Erro ao criar a mancha horária.",
+                        detalhes = ex.InnerException?.Message ?? ex.Message
+                    });
+                }
+            }
+
+            return BadRequest(new { erro = "Dados inválidos." });
         }
-
         // DELETE: api/API_ManchasHorarias/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteManchasHorarias(int id)
         {
-            var manchasHorarias = await _context.ManchasHorarias.FindAsync(id);
+
+            // Encontrar a mancha horária e os horários associados
+            var manchasHorarias = await _context.ManchasHorarias
+                .Include(m => m.ListaHorarios)  // Carrega os horários associados à mancha
+                .FirstOrDefaultAsync(m => m.Id == id);
+
             if (manchasHorarias == null)
             {
                 return NotFound();
             }
 
-            _context.ManchasHorarias.Remove(manchasHorarias);
-            await _context.SaveChangesAsync();
+            try
+            {
+                // Remover os horários associados
+                if (manchasHorarias.ListaHorarios != null && manchasHorarias.ListaHorarios.Any())
+                {
+                    // Desassociar os horários da mancha horária sem os eliminar fisicamente
+                    manchasHorarias.ListaHorarios.Clear();
+                }
 
-            return NoContent();
+                // Eliminar a mancha horária
+                _context.ManchasHorarias.Remove(manchasHorarias);
+                await _context.SaveChangesAsync();
+
+                return NoContent();  // Eliminado com sucesso
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { erro = "Erro ao tentar excluir a mancha horária.", detalhes = ex.Message });
+            }
         }
 
         private bool ManchasHorariasExists(int id)
