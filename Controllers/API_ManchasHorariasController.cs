@@ -35,6 +35,64 @@ namespace GP_Backend.Controllers
 
             public List<int> HorariosIds { get; set; }
         }
+
+        public class ManchaHorariaDTOGET
+        {
+            public int Id { get; set; }
+            public string TipoDeAula { get; set; }
+            public int NumSlots { get; set; }
+            public TimeOnly HoraInicio { get; set; }
+            public DateOnly Dia { get; set; }
+
+            public SalaDTO Sala { get; set; }
+            public UCDTO UC { get; set; }
+            public DocenteDTO Docente { get; set; }
+
+            public List<HorarioDTO> ListaHorarios { get; set; }
+        }
+
+        public class SalaDTO
+        {
+            public int Id { get; set; }
+            public string Nome { get; set; }
+        }
+
+        public class UCDTO
+        {
+            public int Id { get; set; }
+            public string Nome { get; set; }
+        }
+
+        public class DocenteDTO
+        {
+            public int Id { get; set; }
+            public string Nome { get; set; }
+        }
+
+        public class HorarioDTO
+        {
+            public int Id { get; set; }
+            public TurmaDTO Turma { get; set; }
+            public string AnoLetivo { get; set; }
+            public string Semestre { get; set; }
+        }
+
+        public class TurmaDTO
+        {
+            public int Id { get; set; }
+            public string Nome { get; set; }
+            public string AnoCurso { get; set; }
+
+            public CursoDTO Curso { get; set; }
+
+        }
+        public class CursoDTO
+        {
+            public int Id { get; set; }
+
+            public string Nome { get; set; }
+        }
+
         public API_ManchasHorariasController(ApplicationDbContext context,
             IHubContext<HorarioHub> hubContext)
         {
@@ -46,15 +104,57 @@ namespace GP_Backend.Controllers
             [HttpGet]
         public async Task<ActionResult<IEnumerable<ManchasHorarias>>> GetManchasHorarias()
         {
-            var manchasComRelacionamentos = await _context.ManchasHorarias
-                .Include(m => m.Docente)
-                .Include(m => m.Sala)
-                .Include(m => m.UC)
-                //.Include(m => m.ListaHorarios)
-                .ToListAsync();
 
-            return Ok(manchasComRelacionamentos);
-            // return await _context.ManchasHorarias.ToListAsync();
+            var manchas = await _context.ManchasHorarias
+        .Include(m => m.Sala)
+        .Include(m => m.UC)
+        .Include(m => m.Docente)
+        .Include(m => m.ListaHorarios)
+            .ThenInclude(h => h.Turma) // continua a usar TurmaCurso no EF
+            .ThenInclude(h => h.Curso)
+        .Select(m => new ManchaHorariaDTOGET
+        {
+            Id = m.Id,
+            TipoDeAula = m.TipoDeAula,
+            NumSlots = m.NumSlots,
+            HoraInicio = m.HoraInicio,
+            Dia = m.Dia,
+            Sala = new SalaDTO
+            {
+                Id = m.Sala.Id,
+                Nome = m.Sala.Nome
+            },
+            UC = new UCDTO
+            {
+                Id = m.UC.Id,
+                Nome = m.UC.Nome
+            },
+            Docente = new DocenteDTO
+            {
+                Id = m.Docente.Id,
+                Nome = m.Docente.Nome
+            },
+            ListaHorarios = m.ListaHorarios.Select(h => new HorarioDTO
+            {
+                Id = h.Id,
+                Turma = new TurmaDTO
+                {
+                    Id = h.Turma.Id,
+                    Nome = h.Turma.Nome,
+                    AnoCurso = h.Turma.AnoCurso,
+                    Curso = new CursoDTO
+                    {
+                        Id = h.Turma.Curso.CodCurso,
+                        Nome = h.Turma.Curso.Nome
+                    }
+                },
+                AnoLetivo = h.AnoLetivo,
+                Semestre = h.Semestre,
+            }).ToList()
+        })
+        .ToListAsync();
+
+            return Ok(manchas);
         }
 
         // GET: api/API_ManchasHorarias/5
@@ -62,17 +162,61 @@ namespace GP_Backend.Controllers
         public async Task<ActionResult<ManchasHorarias>> GetManchasHorarias(int id)
         {
             var manchaHoraria = await _context.ManchasHorarias
-                .Include(m => m.Docente)
-                .Include(m => m.Sala)
-                .Include(m => m.UC)
-                .FirstOrDefaultAsync(m => m.Id == id);
+        .Include(m => m.Sala)
+        .Include(m => m.UC)
+        .Include(m => m.Docente)
+        .Include(m => m.ListaHorarios)
+            .ThenInclude(h => h.Turma) // continua a usar TurmaCurso no EF
+            .ThenInclude(h => h.Curso)
+        .Where(m => m.Id == id) // Filtra pela mancha horária com o ID específico
+        .Select(m => new ManchaHorariaDTOGET
+        {
+            Id = m.Id,
+            TipoDeAula = m.TipoDeAula,
+            NumSlots = m.NumSlots,
+            HoraInicio = m.HoraInicio,
+            Dia = m.Dia,
+            Sala = new SalaDTO
+            {
+                Id = m.Sala.Id,
+                Nome = m.Sala.Nome
+            },
+            UC = new UCDTO
+            {
+                Id = m.UC.Id,
+                Nome = m.UC.Nome
+            },
+            Docente = new DocenteDTO
+            {
+                Id = m.Docente.Id,
+                Nome = m.Docente.Nome
+            },
+            ListaHorarios = m.ListaHorarios.Select(h => new HorarioDTO
+            {
+                Id = h.Id,
+                Turma = new TurmaDTO
+                {
+                    Id = h.Turma.Id,
+                    Nome = h.Turma.Nome,
+                    AnoCurso = h.Turma.AnoCurso,
+                    Curso = new CursoDTO
+                    {
+                        Id = h.Turma.Curso.CodCurso,
+                        Nome = h.Turma.Curso.Nome
+                    }
+                },
+                AnoLetivo = h.AnoLetivo,
+                Semestre = h.Semestre,
+            }).ToList()
+        })
+        .FirstOrDefaultAsync();
 
             if (manchaHoraria == null)
             {
                 return NotFound();
             }
 
-            return manchaHoraria;
+            return Ok(manchaHoraria);
         }
 
         // PUT: api/API_ManchasHorarias/5
@@ -223,37 +367,6 @@ namespace GP_Backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteManchasHorarias(int id)
         {
-            /*var manchasHorarias = await _context.ManchasHorarias.FindAsync(id);
-            if (manchasHorarias == null)
-            {
-                return NotFound();
-            }
-
-            _context.ManchasHorarias.Remove(manchasHorarias);
-            await _context.SaveChangesAsync();
-
-            return NoContent();*/
-
-            /* var manchasHorarias = await _context.ManchasHorarias
-     .Include(m => m.ListaHorarios) // Inclui a lista de horários para verificar se há dependências
-     .FirstOrDefaultAsync(m => m.Id == id);
-
-             if (manchasHorarias == null)
-             {
-                 return NotFound();
-             }
-
-             // Remover dependências (se houver)
-             if (manchasHorarias.ListaHorarios != null && manchasHorarias.ListaHorarios.Any())
-             {
-                 _context.Horarios.RemoveRange(manchasHorarias.ListaHorarios);
-             }
-
-             _context.ManchasHorarias.Remove(manchasHorarias);
-             await _context.SaveChangesAsync();
-
-             return NoContent();*/
-
 
             // Encontrar a mancha horária e os horários associados
             var manchasHorarias = await _context.ManchasHorarias
@@ -270,19 +383,18 @@ namespace GP_Backend.Controllers
                 // Remover os horários associados
                 if (manchasHorarias.ListaHorarios != null && manchasHorarias.ListaHorarios.Any())
                 {
-                    // Desassociar os horários da mancha horária sem remover fisicamente
+                    // Desassociar os horários da mancha horária sem os eliminar fisicamente
                     manchasHorarias.ListaHorarios.Clear();
                 }
 
-                // Deletar a mancha horária
+                // Eliminar a mancha horária
                 _context.ManchasHorarias.Remove(manchasHorarias);
                 await _context.SaveChangesAsync();
 
-                return NoContent();  // Deletado com sucesso
+                return NoContent();  // Eliminado com sucesso
             }
             catch (Exception ex)
             {
-                // Captura erro e retorna mensagem
                 return StatusCode(500, new { erro = "Erro ao tentar excluir a mancha horária.", detalhes = ex.Message });
             }
         }
