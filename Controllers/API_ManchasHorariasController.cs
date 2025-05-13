@@ -489,5 +489,57 @@ namespace GP_Backend.Controllers
 
             return Ok(manchasHorarias);
         }
+
+        /// <summary>
+        /// Endpoint para efetuar um GET passando o id do Horário
+        /// </summary>
+        /// <param name="horarioId"></param>
+        /// <returns></returns>
+        // GET: api/API_ManchasHorarias/5
+        [HttpGet("manchas-por-horario/{horarioId}")]
+        public async Task<IActionResult> GetManchasPorHorario(int horarioId)
+        {
+            try
+            {
+                var manchas = await _context.ManchasHorarias
+            .Include(m => m.Sala)
+            .Include(m => m.UC)
+            .Include(m => m.Docente)
+            .Include(m => m.ListaHorarios)
+                .ThenInclude(h => h.Turma)
+                    .ThenInclude(t => t.Curso)
+            .Where(m => m.ListaHorarios.Any(h => h.Id == horarioId)) // <- aqui está o filtro correto
+            .Select(m => new ManchaHorariaDTOGET
+            {
+                Id = m.Id,
+                TipoDeAula = m.TipoDeAula,
+                NumSlots = m.NumSlots,
+                HoraInicio = m.HoraInicio,
+                Dia = m.Dia,
+                Sala = new SalaDTO
+                {
+                    Id = m.Sala.Id,
+                    Nome = m.Sala.Nome
+                },
+                UC = new UCDTO
+                {
+                    Id = m.UC.Id,
+                    Nome = m.UC.Nome
+                },
+                Docente = new DocenteDTO
+                {
+                    Id = m.Docente.Id,
+                    Nome = m.Docente.Nome
+                },
+            })
+            .ToListAsync();
+
+                return Ok(manchas);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
