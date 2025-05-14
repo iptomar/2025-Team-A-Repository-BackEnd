@@ -10,6 +10,7 @@ using GP_Backend.Models;
 using GP_Backend.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
+using static GP_Backend.Controllers.API_ManchasHorariasController;
 
 namespace GP_Backend.Controllers
 {
@@ -225,8 +226,8 @@ namespace GP_Backend.Controllers
         public async Task<IActionResult> PutManchasHorarias(int id, [FromBody] ManchaHorariaDto dto)
         {
             var manchaHoraria = await _context.ManchasHorarias
-    .Include(m => m.ListaHorarios)
-    .FirstOrDefaultAsync(m => m.Id == id);
+                                .Include(m => m.ListaHorarios)
+                                .FirstOrDefaultAsync(m => m.Id == id);
 
             if (manchaHoraria == null)
             {
@@ -284,11 +285,64 @@ namespace GP_Backend.Controllers
         [Route("drag-bloco/{id}")]
         public async Task<IActionResult> PutHoursManchasHorarias(int id, [FromBody] ManchaHorariaUpdateHoraDTO update)
         {
-            var mancha = await _context.ManchasHorarias.FindAsync(id);
+            var mancha = await _context.ManchasHorarias
+                        .Include(m => m.Docente)
+                        .Include(m => m.Sala)
+                        .Include(m => m.ListaHorarios)
+                        .FirstOrDefaultAsync(m => m.Id == id);
+
 
             if (mancha == null)
             {
                 return NotFound("A mancha horária não foi encontrada.");
+            }
+
+
+
+            //Verifica se o update é para tirar o bloco da grelha ou se é para inserir na grelha
+            
+            if (update.Dia !=  DateOnly.MinValue && update.HoraInicio != TimeOnly.MinValue) {
+                //Clacular a hora de fim da aula
+                var manchaHoraFim = update.HoraInicio.Add(TimeSpan.FromMinutes(30 * mancha.NumSlots));
+
+
+                // Obter todas as manchas com o mesmo docente
+                var manchasDocente = await _context.ManchasHorarias
+                    .Where(m =>
+                        m.Id != id &&
+                        m.DocenteFK == mancha.DocenteFK &&
+                        m.Dia == update.Dia)
+                    .ToListAsync();
+
+                //Vericar se entre a duração das aulas há alguma sobreposição
+                bool conflitoDocente = manchasDocente.Any(m =>
+                    update.HoraInicio < m.HoraInicio.Add(TimeSpan.FromMinutes(30 * m.NumSlots)) &&
+                    m.HoraInicio < manchaHoraFim
+                );
+
+                if (conflitoDocente)
+                {
+                    return BadRequest("O docente já tem uma aula neste horário.");
+                }
+
+                // Obter todas as manchas com a mesma sala
+                var manchasSala = await _context.ManchasHorarias
+                    .Where(m =>
+                        m.Id != id &&
+                        m.SalaFK == mancha.SalaFK &&
+                        m.Dia == update.Dia)
+                    .ToListAsync();
+
+                //Vericar se entre a duração das aulas há alguma sobreposição
+                bool conflitoSala = manchasSala.Any(m =>
+                    update.HoraInicio < m.HoraInicio.Add(TimeSpan.FromMinutes(30 * m.NumSlots)) &&
+                    m.HoraInicio < manchaHoraFim
+                );
+
+                if (conflitoSala)
+                {
+                    return BadRequest("A sala já está ocupada neste horário.");
+                }
             }
 
             mancha.HoraInicio = update.HoraInicio;
@@ -303,7 +357,11 @@ namespace GP_Backend.Controllers
                 dia = update.Dia.ToString()
             });
 
-            return Ok(mancha);
+            return Ok(new ManchaHorariaUpdateHoraDTO
+            {
+                HoraInicio = mancha.HoraInicio,
+                Dia = mancha.Dia
+            });
         }
 
         // POST: api/API_ManchasHorarias
@@ -496,7 +554,8 @@ namespace GP_Backend.Controllers
         /// <param name="horarioId"></param>
         /// <returns></returns>
         // GET: api/API_ManchasHorarias/5
-        [HttpGet("manchas-por-horario/{horarioId}")]
+        [HttpGet]
+        [Route("manchas-por-horario/{horarioId}")]
         public async Task<IActionResult> GetManchasPorHorario(int horarioId)
         {
             try
