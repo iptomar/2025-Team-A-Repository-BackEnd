@@ -100,6 +100,21 @@ namespace GP_Backend.Controllers
             return NoContent();
         }
 
+        // POST: api/API_Escolas/bulk
+        [HttpPost("bulk")]
+        public async Task<ActionResult<IEnumerable<Escolas>>> PostMultipleEscolas(List<Escolas> escolasList)
+        {
+            if (escolasList == null || !escolasList.Any())
+            {
+                return BadRequest("A lista de escolas está vazia ou é nula.");
+            }
+
+            _context.Escolas.AddRange(escolasList);
+            await _context.SaveChangesAsync();
+
+            return Created("", escolasList);
+        }
+
         private bool EscolasExists(int id)
         {
             return _context.Escolas.Any(e => e.Id == id);
