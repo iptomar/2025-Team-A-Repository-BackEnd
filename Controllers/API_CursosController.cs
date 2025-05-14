@@ -151,6 +151,49 @@ namespace GP_Backend.Controllers
             return NoContent();
         }
 
+        // POST: api/API_Cursos/bulk
+        [HttpPost("bulk")]
+        public async Task<IActionResult> CreateMultiple([FromBody] List<Cursos> cursosList)
+        {
+            if (cursosList == null || !cursosList.Any())
+            {
+                return BadRequest(new { erro = "A lista de cursos está vazia ou é nula." });
+            }
+
+            try
+            {
+                foreach (var curso in cursosList)
+                {
+                    if (curso.Escola == null || curso.Escola.Id == 0)
+                    {
+                        return BadRequest(new { erro = $"Curso '{curso.Nome}' não tem uma escola válida associada." });
+                    }
+
+                    var escola = await _context.Escolas.FindAsync(curso.Escola.Id);
+                    if (escola == null)
+                    {
+                        return BadRequest(new { erro = $"Escola com ID {curso.Escola.Id} não encontrada para o curso '{curso.Nome}'." });
+                    }
+
+                    curso.Escola = escola;
+                }
+
+                _context.Cursos.AddRange(cursosList);
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    message = "Cursos criados com sucesso.",
+                    cursos = cursosList.Select(c => new { c.CodCurso, c.Nome, EscolaId = c.Escola.Id })
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { erro = ex.Message });
+            }
+        }
+
+
         private bool CursosExists(int id)
         {
             return _context.Cursos.Any(e => e.CodCurso == id);
