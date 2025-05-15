@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore;
 using GP_Backend.Data;
 using GP_Backend.Models;
 using Newtonsoft.Json;
+using GP_Backend.Hubs;
+using Microsoft.AspNetCore.SignalR;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace GP_Backend.Controllers
 {
@@ -16,6 +19,7 @@ namespace GP_Backend.Controllers
     public class API_HorariosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHubContext<HorarioHub> _hubContext;
 
         public class HorarioDto
         {
@@ -29,9 +33,11 @@ namespace GP_Backend.Controllers
         }
 
 
-        public API_HorariosController(ApplicationDbContext context)
+        public API_HorariosController(ApplicationDbContext context,
+            IHubContext<HorarioHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         // GET: api/API_Horarios
@@ -78,6 +84,11 @@ namespace GP_Backend.Controllers
             if (id != horarios.Id)
             {
                 return BadRequest();
+            }
+
+            if (horarios.Bloqueado)
+            {
+                return BadRequest("Não é possível editar um horário bloqueado");
             }
 
             _context.Entry(horarios).State = EntityState.Modified;
@@ -174,6 +185,68 @@ namespace GP_Backend.Controllers
         private bool HorariosExists(int id)
         {
             return _context.Horarios.Any(e => e.Id == id);
+        }
+
+        [HttpPut("Bloquear/{id}")]
+        public async Task<IActionResult> BloquearHorario(int id)
+        {
+            var horario = await _context.Horarios.FindAsync(id);
+
+            if (horario == null)
+            {
+                return NotFound();
+            }
+
+            if (horario.Bloqueado)
+            {
+                return BadRequest("Horário já está bloqueado");
+            }
+
+            horario.Bloqueado = true;
+
+            _context.Entry(horario).State = EntityState.Modified;
+
+            await _context.SaveChangesAsync();
+
+            // Envia o evento para todos os clientes conectados
+            await _hubContext.Clients.All.SendAsync("HorarioBloqueado", new
+            {
+                id = horario.Id,
+                bloqueado = horario.Bloqueado
+            });
+
+            return Ok(horario);
+        }
+
+        [HttpPut("Desbloquear/{id}")]
+        public async Task<IActionResult> DesbloquearHorario(int id)
+        {
+            var horario = await _context.Horarios.FindAsync(id);
+
+            if (horario == null)
+            {
+                return NotFound();
+            }
+
+            if (!horario.Bloqueado)
+            {
+                return BadRequest("Horário já está desbloqueado");
+            }
+
+            horario.Bloqueado = false;
+
+            _context.Entry(horario).State = EntityState.Modified;
+
+            await _context.SaveChangesAsync();
+
+            // Envia o evento para todos os clientes conectados
+            await _hubContext.Clients.All.SendAsync("HorarioBloqueado", new
+            {
+                id = horario.Id,
+                bloqueado = horario.Bloqueado
+            });
+
+            return Ok(horario);
         }
     }
 }
