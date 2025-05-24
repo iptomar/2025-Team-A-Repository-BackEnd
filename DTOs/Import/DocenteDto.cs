@@ -1,4 +1,4 @@
-﻿namespace GP_Backend.DTOs.NewFolder
+﻿namespace GP_Backend.DTOs.Import
 {
     public class DocenteDto
     {

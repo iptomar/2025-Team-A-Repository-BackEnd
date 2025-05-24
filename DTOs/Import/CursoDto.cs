@@ -1,6 +1,6 @@
-﻿using GP_Backend.DTOs.NewFolder;
+﻿using GP_Backend.DTOs.Import;
 
-namespace GP_Backend.DTOs
+namespace GP_Backend.DTOs.Import
 {
     public class CursoDto
     {

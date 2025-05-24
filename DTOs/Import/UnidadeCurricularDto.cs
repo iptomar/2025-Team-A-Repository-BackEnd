@@ -1,4 +1,4 @@
-﻿namespace GP_Backend.DTOs
+﻿namespace GP_Backend.DTOs.Import
 {
     public class UnidadeCurricularDto
     {
