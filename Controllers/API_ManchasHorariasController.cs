@@ -600,5 +600,29 @@ namespace GP_Backend.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        /// <summary>
+        /// Endpoint para obter as manchas horárias de uma sala, filtrando por ano letivo e semestre
+        /// </summary>
+        /// <param name="idSala">ID da sala</param>
+        /// <param name="anoLetivo">Ano letivo no formato "2024/2025"</param>
+        /// <param name="semestre">Número do semestre (1 ou 2)</param>
+        /// <returns>Lista de manchas horárias</returns>
+        [HttpGet("Sala/{idSala}")]
+        public async Task<IActionResult> GetManchasHorariasPorSala(int idSala, [FromQuery] string anoLetivo, [FromQuery]string semestre)
+        {
+            var manchasHorarias = await _context.ManchasHorarias
+                .Where(m => m.SalaFK == idSala &&
+                            m.ListaHorarios.Any(h => h.AnoLetivo == anoLetivo && h.Semestre == semestre))
+                .Include(m => m.ListaHorarios) // Inclui os horários na resposta, se quiseres
+                .ToListAsync();
+
+            if (manchasHorarias == null || manchasHorarias.Count() == 0)
+            {
+                return NotFound();
+            }
+
+            return Ok(manchasHorarias);
+        }
+
     }
 }
