@@ -4,6 +4,14 @@ using GP_Backend.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Authorization;
+using System.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace GP_Backend.Controllers
 {
@@ -13,6 +21,7 @@ namespace GP_Backend.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly ApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
 
         /// <summary>
         /// Construtor do controller
@@ -20,10 +29,11 @@ namespace GP_Backend.Controllers
         /// </summary>
         /// <param name="userManager"></param>
         /// <param name="context"></param>
-        public API_AuthController(UserManager<IdentityUser> userManager, ApplicationDbContext context)
+        public API_AuthController(UserManager<IdentityUser> userManager, ApplicationDbContext context, IConfiguration configuration)
         {
             _userManager = userManager;
             _context = context;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -70,19 +80,92 @@ namespace GP_Backend.Controllers
             // Procurar o utilizador pelo email
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
-                return Unauthorized("Email ou password inválidos.");
+                return BadRequest(new { message = "Email ou password inválidos." });
 
             // Verificar se o email está confirmado
             if (!user.EmailConfirmed)
-                return Unauthorized("O email ainda não foi confirmado.");
+                return BadRequest(new { message = "O email ainda não foi confirmado." });
 
             // Verificar se a password está correta
             var passwordValid = await _userManager.CheckPasswordAsync(user, model.Password);
             if (!passwordValid)
-                return Unauthorized("Email ou password inválidos.");
+                return BadRequest(new { message = "Email ou password inválidos." });
 
-            // Login bem-sucedido
-            return Ok("Login efetuado com sucesso.");
+
+            // Criar os claims do token
+            var claims = new[]
+            {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.NameIdentifier, user.Id)
+            };
+
+            // Chave secreta
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            // Criar o token JWT
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(2),
+                signingCredentials: creds
+            );
+
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+            // Retornar o token
+            return Ok(new { token = tokenString });
+        }
+
+
+
+        [HttpGet("me")]
+        [Authorize]  // Só acessível com token válido
+        public async Task<IActionResult> GetMe()
+        {
+           
+            // Obter o ID do utilizador a partir dos claims do token   
+            var userIdClaim = User.Claims
+                .Where(c => c.Type == ClaimTypes.NameIdentifier)
+                .FirstOrDefault(c => Guid.TryParse(c.Value, out _));
+
+            if (userIdClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            var userId = userIdClaim.Value;
+
+            // Obter utilizador ASP.NET Identity
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Obter registo adicional na tabela Utilizadores
+            var utilizador = await _context.Utilizadores
+                .FirstOrDefaultAsync(u => u.UserID == userId);
+
+            // Se o utilizador não existir na tabela Utilizadores, retornar erro 404
+            if (utilizador == null)
+            {
+                return NotFound(new { message = "Utilizador não encontrado na tabela Utilizadores." });
+            }
+
+            // Obter roles do utilizador
+            var roles = await _userManager.GetRolesAsync(user);
+                       
+            return Ok(new
+            {
+                user.Id,
+                user.Email,
+                user.UserName,
+                Name = utilizador.Nome,
+                Role = roles.FirstOrDefault()
+            });
         }
     }
 }
