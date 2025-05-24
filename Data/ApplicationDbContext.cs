@@ -33,7 +33,7 @@ public class ApplicationDbContext : IdentityDbContext
 
         // Criar dados das ROLES
         modelBuilder.Entity<IdentityRole>().HasData(
-           new IdentityRole { Id = "A", Name = "Administrator", NormalizedName = "ADMINISTRATOR" },
+           new IdentityRole { Id = "A", Name = "Administrador", NormalizedName = "ADMINISTRADOR" },
            new IdentityRole { Id = "CH", Name = "ComissaoHorarios", NormalizedName = "COMISSAOHORARIOS" },
            new IdentityRole { Id = "CC", Name = "ComissaoCurso", NormalizedName = "COMISSAOCURSO" }
 
