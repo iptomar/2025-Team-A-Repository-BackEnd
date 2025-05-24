@@ -1,8 +1,7 @@
 ﻿using GP_Backend.Models;
 using Microsoft.AspNetCore.Mvc;
 using GP_Backend.Data;
-using GP_Backend.Models;
-using GP_Backend.DTOs;
+using GP_Backend.DTOs.Import;
 
 namespace GP_Backend.Controllers
 {
@@ -19,7 +18,6 @@ namespace GP_Backend.Controllers
         {
             return View();
         }
-
 
         [HttpPost("importar")]
         public async Task<IActionResult> ImportarDados([FromBody] ImportDto dadosImportacao)
@@ -109,10 +107,5 @@ namespace GP_Backend.Controllers
                 return StatusCode(500, $"Erro ao importar dados: {ex.Message}");
             }
         }
-
-
-
-
-
     }
 }
