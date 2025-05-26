@@ -25,6 +25,18 @@ namespace GP_Backend.Models
 
         public Boolean Bloqueado { get; set; } = false;
 
+
+        /// <summary>
+        /// Data de início e fim do horário
+        /// </summary>
+        [DataType(DataType.Date)]
+        public DateTime DataInicio { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime DataFim { get; set; }
+
+
+
         /* ************************************************
          * Vamos criar as Relações (FKs) com outras tabelas
          * *********************************************** */
