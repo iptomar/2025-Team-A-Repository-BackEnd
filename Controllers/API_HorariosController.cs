@@ -141,11 +141,19 @@ namespace GP_Backend.Controllers
                         return BadRequest("Json Inválido, não enviou a Turma");
                     }
 
+                    // Verifica se as datas de início e fim estão presentes
+                    if (data.dataInicio == null || data.dataFim == null)
+                    {
+                        return BadRequest("Json Inválido, falta data de início ou fim");
+                    }
+
                     var horario = new Horarios
                     {
                         AnoLetivo = (string)data.anoLetivo,
                         Semestre = (string)data.semestre,
-                        TurmaFK = (int)data.turmaFK
+                        TurmaFK = (int)data.turmaFK,
+                        DataInicio = (DateTime)data.dataInicio,
+                        DataFim = (DateTime)data.dataFim
                     };
 
                     if (ModelState.IsValid)
