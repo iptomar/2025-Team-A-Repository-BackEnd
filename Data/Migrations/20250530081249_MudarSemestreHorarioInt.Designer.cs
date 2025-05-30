@@ -4,6 +4,7 @@ using GP_Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GP_Backend.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250530081249_MudarSemestreHorarioInt")]
+    partial class MudarSemestreHorarioInt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -111,12 +114,6 @@ namespace GP_Backend.Data.Migrations
 
                     b.Property<bool>("Bloqueado")
                         .HasColumnType("bit");
-
-                    b.Property<DateTime>("DataFim")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DataInicio")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("Semestre")
                         .HasColumnType("int");
@@ -323,8 +320,8 @@ namespace GP_Backend.Data.Migrations
                         new
                         {
                             Id = "A",
-                            Name = "Administrador",
-                            NormalizedName = "ADMINISTRADOR"
+                            Name = "Administrator",
+                            NormalizedName = "ADMINISTRATOR"
                         },
                         new
                         {

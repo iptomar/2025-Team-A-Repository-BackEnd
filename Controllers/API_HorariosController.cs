@@ -25,7 +25,7 @@ namespace GP_Backend.Controllers
         {
             public int Id { get; set; }
             public string AnoLetivo { get; set; }
-            public string Semestre { get; set; }
+            public int Semestre { get; set; }
             public int TurmaId { get; set; }
             public string NomeTurma { get; set; }
             public string AnoCurso { get; set; }

@@ -75,7 +75,7 @@ namespace GP_Backend.Controllers
             public int Id { get; set; }
             public TurmaDTO Turma { get; set; }
             public string AnoLetivo { get; set; }
-            public string Semestre { get; set; }
+            public int Semestre { get; set; }
         }
 
         public class TurmaDTO
@@ -251,7 +251,6 @@ namespace GP_Backend.Controllers
                 manchaHoraria.DocenteFK = dto.DocenteFK;
                 manchaHoraria.SalaFK = dto.SalaFK;
                 manchaHoraria.UCFK = dto.UCFK;
-                //manchaHoraria.ListaHorarios = horarios;
 
                 // Atualizar os horarios associados
                 manchaHoraria.ListaHorarios.Clear();
@@ -600,5 +599,72 @@ namespace GP_Backend.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        /// <summary>
+        /// Endpoint para obter as manchas horárias de uma sala, filtrando por ano letivo e semestre
+        /// </summary>
+        /// <param name="idSala">ID da sala</param>
+        /// <param name="anoLetivo">Ano letivo no formato "2024/2025"</param>
+        /// <param name="semestre">Número do semestre (1 ou 2)</param>
+        /// <returns>Lista de manchas horárias</returns>
+        [HttpGet("Sala/{idSala}")]
+        public async Task<IActionResult> GetManchasHorariasPorSala(int idSala, [FromQuery] string anoLetivo, [FromQuery] int semestre)
+        {
+            var manchasHorarias = await _context.ManchasHorarias
+                .Where(m => m.SalaFK == idSala &&
+                            m.ListaHorarios.Any(h => h.AnoLetivo == anoLetivo && h.Semestre == semestre))
+                .Include(m => m.ListaHorarios)
+                    .ThenInclude(h => h.Turma)
+                        .ThenInclude(t => t.Curso)
+                .Include(m => m.Sala)
+                .Include(m => m.UC)
+                .Include(m => m.Docente)
+                .ToListAsync();
+
+            // Mapear para DTOs manualmente (podes usar AutoMapper, mas aqui é manual)
+            var resultado = manchasHorarias.Select(m => new ManchaHorariaDTOGET
+            {
+                Id = m.Id,
+                TipoDeAula = m.TipoDeAula,
+                NumSlots = m.NumSlots,
+                HoraInicio = m.HoraInicio,
+                Dia = m.Dia,
+                Sala = new SalaDTO
+                {
+                    Id = m.Sala.Id,
+                    Nome = m.Sala.Nome
+                },
+                UC = new UCDTO
+                {
+                    Id = m.UC.Id,
+                    Nome = m.UC.Nome
+                },
+                Docente = new DocenteDTO
+                {
+                    Id = m.Docente.Id,
+                    Nome = m.Docente.Nome
+                },
+                ListaHorarios = m.ListaHorarios.Select(h => new HorarioDTO
+                {
+                    Id = h.Id,
+                    AnoLetivo = h.AnoLetivo,
+                    Semestre = h.Semestre,
+                    Turma = new TurmaDTO
+                    {
+                        Id = h.Turma.Id,
+                        Nome = h.Turma.Nome,
+                        AnoCurso = h.Turma.AnoCurso,
+                        Curso = new CursoDTO
+                        {
+                            Id = h.Turma.Curso.CodCurso,
+                            Nome = h.Turma.Curso.Nome
+                        }
+                    }
+                }).ToList()
+            }).ToList();
+
+            return Ok(resultado);
+        }
+
+
     }
 }
