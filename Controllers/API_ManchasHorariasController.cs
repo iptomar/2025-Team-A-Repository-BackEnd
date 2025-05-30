@@ -662,11 +662,6 @@ namespace GP_Backend.Controllers
                 }).ToList()
             }).ToList();
 
-            if (!resultado.Any())
-            {
-                return NotFound();
-            }
-
             return Ok(resultado);
         }
 
