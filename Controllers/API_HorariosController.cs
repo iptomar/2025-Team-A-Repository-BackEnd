@@ -25,7 +25,7 @@ namespace GP_Backend.Controllers
         {
             public int Id { get; set; }
             public string AnoLetivo { get; set; }
-            public string Semestre { get; set; }
+            public int Semestre { get; set; }
             public int TurmaId { get; set; }
             public string NomeTurma { get; set; }
             public string AnoCurso { get; set; }
@@ -144,7 +144,7 @@ namespace GP_Backend.Controllers
                     var horario = new Horarios
                     {
                         AnoLetivo = (string)data.anoLetivo,
-                        Semestre = (string)data.semestre,
+                        Semestre = (int)data.semestre,
                         TurmaFK = (int)data.turmaFK
                     };
 
