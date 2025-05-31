@@ -1,4 +1,5 @@
 ﻿using GP_Backend.DTOs.Import;
+using GP_Backend.Models;
 
 namespace GP_Backend.DTOs.Import
 {

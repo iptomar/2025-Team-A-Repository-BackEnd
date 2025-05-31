@@ -6,6 +6,6 @@
         public string Plano { get; set; }
         public int Semestre { get; set; }
         public int Ano { get; set; }
-        public List<CursoDto> ListaCursos { get; set; }
+        public List<String> ListaCursos { get; set; }
     }
 }
