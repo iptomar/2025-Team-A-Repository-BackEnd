@@ -150,7 +150,7 @@ namespace GP_Backend.Controllers
                     var horario = new Horarios
                     {
                         AnoLetivo = (string)data.anoLetivo,
-                        Semestre = (string)data.semestre,
+                        Semestre = (int)data.semestre,
                         TurmaFK = (int)data.turmaFK,
                         DataInicio = (DateTime)data.dataInicio,
                         DataFim = (DateTime)data.dataFim
