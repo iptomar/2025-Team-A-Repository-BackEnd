@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using GP_Backend.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.ComponentModel.DataAnnotations;
 
 namespace GP_Backend.Controllers
 {
@@ -30,6 +31,17 @@ namespace GP_Backend.Controllers
             public string NomeTurma { get; set; }
             public string AnoCurso { get; set; }
             public string TurmaCurso { get; set; }
+
+
+            /// <summary>
+            /// Data de início e fim do horário
+            /// </summary>
+            [DataType(DataType.Date)]
+            public DateTime DataInicio { get; set; }
+
+            [DataType(DataType.Date)]
+            public DateTime DataFim { get; set; }
+
         }
 
 
@@ -55,6 +67,8 @@ namespace GP_Backend.Controllers
                    NomeTurma = h.Turma.Nome,
                    AnoCurso = h.Turma.AnoCurso,
                    TurmaCurso = h.Turma.Curso.Nome,
+                   DataInicio = h.DataInicio,
+                   DataFim = h.DataFim
                })
                .ToListAsync();
 
@@ -256,5 +270,37 @@ namespace GP_Backend.Controllers
 
             return Ok(horario);
         }
+
+        // GET: api/API_Horarios/horarios?anoLetivo=2024/2025&semestre=2&turmaFK=1
+        [HttpGet("horarios")]
+        public async Task<ActionResult<IEnumerable<HorarioDto>>> GetHorariosFiltrados([FromQuery] string anoLetivo, [FromQuery] int semestre, [FromQuery] int turmaFK)
+        {
+            if (string.IsNullOrEmpty(anoLetivo))
+                return BadRequest("Parâmetro 'anoLetivo' é obrigatório.");
+
+            var horariosFiltrados = await _context.Horarios
+                .Include(h => h.Turma)
+                    .ThenInclude(t => t.Curso)
+                .Where(h =>
+                    h.AnoLetivo == anoLetivo &&
+                    h.Semestre == semestre &&
+                    h.TurmaFK == turmaFK)
+                .Select(h => new HorarioDto
+                {
+                    Id = h.Id,
+                    AnoLetivo = h.AnoLetivo,
+                    Semestre = h.Semestre,
+                    TurmaId = h.TurmaFK,
+                    NomeTurma = h.Turma.Nome,
+                    AnoCurso = h.Turma.AnoCurso,
+                    TurmaCurso = h.Turma.Curso.Nome,
+                    DataInicio = h.DataInicio,
+                    DataFim = h.DataFim
+                })
+                .ToListAsync();
+
+            return Ok(horariosFiltrados);
+        }
+
     }
 }
