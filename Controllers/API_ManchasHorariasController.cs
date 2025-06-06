@@ -666,5 +666,69 @@ namespace GP_Backend.Controllers
         }
 
 
+        /// <summary>
+        /// Endpoint para efetuar um GET passando o id do Docente como parametro, filtrado pelo semestre e ano letivo
+        /// </summary>
+        /// <param name="idDocente"></param>
+        /// <returns></returns>
+        // GET: api/API_ManchasHorarias/5
+        [HttpGet("Docente/{idDocente}")]
+        public async Task<IActionResult> GetManchasHorariasPorDocente(int idDocente, [FromQuery] string anoLetivo, [FromQuery] int semestre)
+        {
+            var manchasHorarias = await _context.ManchasHorarias
+                .Where(m => m.SalaFK == idDocente &&
+                            m.ListaHorarios.Any(h => h.AnoLetivo == anoLetivo && h.Semestre == semestre))
+                .Include(m => m.ListaHorarios)
+                    .ThenInclude(h => h.Turma)
+                        .ThenInclude(t => t.Curso)
+                .Include(m => m.Sala)
+                .Include(m => m.UC)
+                .Include(m => m.Docente)
+                .ToListAsync();
+
+            // Mapear para DTOs manualmente (podes usar AutoMapper, mas aqui é manual)
+            var resultado = manchasHorarias.Select(m => new ManchaHorariaDTOGET
+            {
+                Id = m.Id,
+                TipoDeAula = m.TipoDeAula,
+                NumSlots = m.NumSlots,
+                HoraInicio = m.HoraInicio,
+                Dia = m.Dia,
+                Sala = new SalaDTO
+                {
+                    Id = m.Sala.Id,
+                    Nome = m.Sala.Nome
+                },
+                UC = new UCDTO
+                {
+                    Id = m.UC.Id,
+                    Nome = m.UC.Nome
+                },
+                Docente = new DocenteDTO
+                {
+                    Id = m.Docente.Id,
+                    Nome = m.Docente.Nome
+                },
+                ListaHorarios = m.ListaHorarios.Select(h => new HorarioDTO
+                {
+                    Id = h.Id,
+                    AnoLetivo = h.AnoLetivo,
+                    Semestre = h.Semestre,
+                    Turma = new TurmaDTO
+                    {
+                        Id = h.Turma.Id,
+                        Nome = h.Turma.Nome,
+                        AnoCurso = h.Turma.AnoCurso,
+                        Curso = new CursoDTO
+                        {
+                            Id = h.Turma.Curso.CodCurso,
+                            Nome = h.Turma.Curso.Nome
+                        }
+                    }
+                }).ToList()
+            }).ToList();
+
+            return Ok(resultado);
+        }
     }
 }
