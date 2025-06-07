@@ -676,7 +676,7 @@ namespace GP_Backend.Controllers
         public async Task<IActionResult> GetManchasHorariasPorDocente(int idDocente, [FromQuery] string anoLetivo, [FromQuery] int semestre)
         {
             var manchasHorarias = await _context.ManchasHorarias
-                .Where(m => m.SalaFK == idDocente &&
+                .Where(m => m.DocenteFK == idDocente &&
                             m.ListaHorarios.Any(h => h.AnoLetivo == anoLetivo && h.Semestre == semestre))
                 .Include(m => m.ListaHorarios)
                     .ThenInclude(h => h.Turma)
