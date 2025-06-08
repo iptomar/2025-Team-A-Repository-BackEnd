@@ -282,7 +282,7 @@ namespace GP_Backend.Controllers
 
         [HttpPut]
         [Route("drag-bloco/{id}")]
-        public async Task<IActionResult> PutHoursManchasHorarias(int id, [FromBody] ManchaHorariaUpdateHoraDTO update)
+        public async Task<IActionResult> PutHoursManchasHorarias(int id, [FromBody] ManchaHorariaUpdateHoraDTO update, [FromQuery] string anoLetivo, [FromQuery] int semestre)
         {
             var mancha = await _context.ManchasHorarias
                         .Include(m => m.Docente)
@@ -310,7 +310,9 @@ namespace GP_Backend.Controllers
                     .Where(m =>
                         m.Id != id &&
                         m.DocenteFK == mancha.DocenteFK &&
-                        m.Dia == update.Dia)
+                        m.Dia == update.Dia &&
+                        m.ListaHorarios.Any(h => h.AnoLetivo == anoLetivo && h.Semestre == semestre))
+                    .Include(m => m.ListaHorarios)
                     .ToListAsync();
 
                 //Vericar se entre a duração das aulas há alguma sobreposição
@@ -329,7 +331,9 @@ namespace GP_Backend.Controllers
                     .Where(m =>
                         m.Id != id &&
                         m.SalaFK == mancha.SalaFK &&
-                        m.Dia == update.Dia)
+                        m.Dia == update.Dia &&
+                        m.ListaHorarios.Any(h => h.AnoLetivo == anoLetivo && h.Semestre == semestre))
+                    .Include(m => m.ListaHorarios)
                     .ToListAsync();
 
                 //Vericar se entre a duração das aulas há alguma sobreposição
