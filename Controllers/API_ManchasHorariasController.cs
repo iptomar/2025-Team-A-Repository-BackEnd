@@ -690,17 +690,6 @@ namespace GP_Backend.Controllers
                 .Include(m => m.Docente)
                 .ToListAsync();
 
-            // Verificar se um professor tem mais de 8h de aulas no mesmo dia
-            var aulasPorDia = manchasHorarias
-                .GroupBy(m => m.Dia)
-                .Select(g => new
-                {
-                    Dia = g.Key,
-                    TotalMinutos = g.Sum(m => m.NumSlots * 30)
-                })
-                .Where(g => g.TotalMinutos > 480)
-                .ToList();
-
             // Mapear para DTOs manualmente (podes usar AutoMapper, mas aqui é manual)
             var resultado = manchasHorarias.Select(m => new ManchaHorariaDTOGET
             {
@@ -743,15 +732,7 @@ namespace GP_Backend.Controllers
                 }).ToList()
             }).ToList();
 
-            return Ok(new
-            {
-                manchas = resultado,
-                diasMais8Horas = aulasPorDia.Select(d => new
-                {
-                    Dia = d.Dia.ToString(),
-                    TotalMinutos = d.TotalMinutos
-                }).ToList()
-            });
+            return Ok(resultado);
         }
     }
 }
