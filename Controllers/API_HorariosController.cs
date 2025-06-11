@@ -32,6 +32,7 @@ namespace GP_Backend.Controllers
             public string AnoCurso { get; set; }
             public string TurmaCurso { get; set; }
 
+            public int EscolaId { get; set; }
 
             /// <summary>
             /// Data de início e fim do horário
@@ -294,6 +295,7 @@ namespace GP_Backend.Controllers
                     NomeTurma = h.Turma.Nome,
                     AnoCurso = h.Turma.AnoCurso,
                     TurmaCurso = h.Turma.Curso.Nome,
+                    EscolaId = h.Turma.Curso.EscolaFK,
                     DataInicio = h.DataInicio,
                     DataFim = h.DataFim
                 })
