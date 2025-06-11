@@ -24,7 +24,7 @@ namespace GP_Backend.Controllers
         public class ManchaHorariaUpdateHoraDTO
         {
             public TimeOnly HoraInicio { get; set; }
-            public DateOnly Dia { get; set; }
+            public int Dia { get; set; }
         }
         public class ManchaHorariaDto
         {
@@ -43,7 +43,7 @@ namespace GP_Backend.Controllers
             public string TipoDeAula { get; set; }
             public int NumSlots { get; set; }
             public TimeOnly HoraInicio { get; set; }
-            public DateOnly Dia { get; set; }
+            public int Dia { get; set; }
 
             public SalaDTO Sala { get; set; }
             public UCDTO UC { get; set; }
@@ -300,7 +300,7 @@ namespace GP_Backend.Controllers
 
             //Verifica se o update é para tirar o bloco da grelha ou se é para inserir na grelha
             
-            if (update.Dia !=  DateOnly.MinValue && update.HoraInicio != TimeOnly.MinValue) {
+            if (update.Dia != 0 && update.HoraInicio != TimeOnly.MinValue) {
                 //Clacular a hora de fim da aula
                 var manchaHoraFim = update.HoraInicio.Add(TimeSpan.FromMinutes(30 * mancha.NumSlots));
 
