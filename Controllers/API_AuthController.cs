@@ -164,7 +164,9 @@ namespace GP_Backend.Controllers
                 user.Email,
                 user.UserName,
                 Name = utilizador.Nome,
-                Role = roles.FirstOrDefault()
+                Role = roles.FirstOrDefault(),
+                Curso = utilizador.CursoFK,
+                Escola = utilizador.EscolaFK
             });
         }
     }
