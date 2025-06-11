@@ -25,7 +25,7 @@ namespace GP_Backend.Models
 
         public TimeOnly HoraInicio { get; set; }
 
-        public DateOnly Dia { get; set; }
+        public int Dia { get; set; }
         /* ************************************************
          * Vamos criar as Relações (FKs) com outras tabelas
          * *********************************************** */
