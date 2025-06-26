@@ -31,13 +31,13 @@ namespace GP_Backend.Controllers
             public string NomeTurma { get; set; }
             public string AnoCurso { get; set; }
             public string TurmaCurso { get; set; }
-
             public int EscolaId { get; set; }
+			public int CursoId { get; set; }
 
-            /// <summary>
-            /// Data de início e fim do horário
-            /// </summary>
-            [DataType(DataType.Date)]
+			/// <summary>
+			/// Data de início e fim do horário
+			/// </summary>
+			[DataType(DataType.Date)]
             public DateTime DataInicio { get; set; }
 
             [DataType(DataType.Date)]
@@ -297,8 +297,9 @@ namespace GP_Backend.Controllers
                     TurmaCurso = h.Turma.Curso.Nome,
                     EscolaId = h.Turma.Curso.EscolaFK,
                     DataInicio = h.DataInicio,
-                    DataFim = h.DataFim
-                })
+                    DataFim = h.DataFim,
+                    CursoId = h.Turma.Curso.CodCurso
+				})
                 .ToListAsync();
 
             return Ok(horariosFiltrados);
