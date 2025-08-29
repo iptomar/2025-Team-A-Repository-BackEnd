@@ -1,26 +1,28 @@
-# Projeto Final de Gestão de Projetos 2025
+# Final Project – Project Management 2025
 
-Este projeto trata-se da componente back-end do projeto final da cadeira de Gestão de Projetos da Licenciatura em Engenharia Informática no Instituto Politécnico de Tomar.
+This project refers to the back-end component of the final project for the Project Management course of the Bachelor’s Degree in Computer Engineering at the Polytechnic Institute of Tomar.
 
-## Objetivo
+## Objective
 
-No Instituto Politécnico de Tomar existe uma grande necessidade de uma plataforma que permita aos responsáveis de cada curso criarem horários que alinhem com a disponibilidade do docente, das salas e cumpram com as necessidades horárias de cada unidade curricular em cada turma.
-O objetivo principal deste projeto é criar uma aplicação que ofereça essa mesma funcionalidade em tempo real, para que não haja sobreposições acidentais de manchas horárias.
+At the Polytechnic Institute of Tomar, there is a strong need for a platform that allows those responsible for each degree program to create timetables that align with teacher availability, room allocation, and meet the scheduling requirements of each curricular unit for each class.
+The main goal of this project is to create an application that provides this functionality in real time, preventing accidental overlaps in schedules.
 
-## Funcionalidades
+## Features
 
-- Base de dados para armazenamento de informações sobre Docentes, Unidades Curriculares, Salas e Horários
-- Aprovação de contas como Comissão de Horários
-- Websocket para visualização em tempo real das alterações
+- Database for storing information about Teachers, Curricular Units, Rooms, and Timetables
+  
+- Account approval by the Timetable Committee
+
+- WebSocket for real-time visualization of changes
+
 - API
 
-## Tecnologias Utilizadas
+## Technologies Used
 
 - ASP .NET Entity Framework
-- SQL server
 
-## Instalação
+- SQL Server
 
-- Visual Studio MSBuild
+## Installation
 
-
+Run Visual Studio MSBuild
